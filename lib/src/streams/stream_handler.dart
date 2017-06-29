@@ -61,6 +61,10 @@ class Http2StreamImpl extends TransportStream
   // The state of this stream.
   StreamState state = StreamState.Idle;
 
+  int _cancelErrorCode;
+
+  void Function(int) _onCancel;
+
   final Function _canPushFun;
   final Function _pushStreamFun;
   final Function _terminateStreamFun;
@@ -95,6 +99,20 @@ class Http2StreamImpl extends TransportStream
       => _pushStreamFun(this, requestHeaders);
 
   void terminate() => _terminateStreamFun(this);
+
+  void onCancel(void handler(int)) {
+    _onCancel = handler;
+    if (_cancelErrorCode != null && _onCancel != null) {
+      _onCancel(_cancelErrorCode);
+    }
+  }
+
+  set cancelErrorCode(int errorCode) {
+    _cancelErrorCode = errorCode;
+    if (_onCancel != null) {
+      _onCancel(_cancelErrorCode);
+    }
+  }
 }
 
 /// Handles [Frame]s with a non-zero stream-id.
@@ -597,6 +615,7 @@ class StreamHandler extends Object with TerminatableMixin, ClosableMixin {
   }
 
   void _handleRstFrame(Http2StreamImpl stream, RstStreamFrame frame) {
+    stream.cancelErrorCode = frame.errorCode;
     var exception = new StreamException(
         stream.id, 'Stream was terminated by peer.');
     _closeStreamAbnormally(stream, exception, propagateException: true);
@@ -706,6 +725,7 @@ class StreamHandler extends Object with TerminatableMixin, ClosableMixin {
     }
     stream.incomingQueue.terminate(propagateException ? exception : null);
     stream._outgoingCSubscription.cancel();
+    stream._outgoingC.close();
 
     // NOTE: we're not adding an error here.
     stream.outgoingQueue.terminate();
