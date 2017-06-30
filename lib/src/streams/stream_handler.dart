@@ -61,9 +61,12 @@ class Http2StreamImpl extends TransportStream
   // The state of this stream.
   StreamState state = StreamState.Idle;
 
-  int _cancelErrorCode;
+  // Error code from RST_STREAM frame, if the stream has been terminated
+  // remotely.
+  int _terminatedErrorCode;
 
-  void Function(int) _onCancel;
+  // Termination handler. Invoked if the stream receives an RST_STREAM frame.
+  void Function(int) _onTerminated;
 
   final Function _canPushFun;
   final Function _pushStreamFun;
@@ -100,17 +103,17 @@ class Http2StreamImpl extends TransportStream
 
   void terminate() => _terminateStreamFun(this);
 
-  void onCancel(void handler(int)) {
-    _onCancel = handler;
-    if (_cancelErrorCode != null && _onCancel != null) {
-      _onCancel(_cancelErrorCode);
+  set onTerminated(void Function(int) handler) {
+    _onTerminated = handler;
+    if (_terminatedErrorCode != null && _onTerminated != null) {
+      _onTerminated(_terminatedErrorCode);
     }
   }
 
   set cancelErrorCode(int errorCode) {
-    _cancelErrorCode = errorCode;
-    if (_onCancel != null) {
-      _onCancel(_cancelErrorCode);
+    _terminatedErrorCode = errorCode;
+    if (_onTerminated != null) {
+      _onTerminated(_terminatedErrorCode);
     }
   }
 }

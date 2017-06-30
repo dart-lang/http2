@@ -210,10 +210,10 @@ abstract class TransportStream {
   /// A sink for writing data and/or headers to the remote end.
   StreamSink<StreamMessage> get outgoingMessages;
 
-  /// Set the cancellation handler on this stream.
+  /// Set the termination handler on this stream.
   ///
   /// The handler will be called if the stream receives an RST_STREAM frame.
-  void onCancel(void value(int errorCode));
+  set onTerminated(void Function(int) value);
 
   /// Terminates this HTTP/2 stream in an un-normal way.
   ///

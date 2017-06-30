@@ -233,9 +233,9 @@ main() {
 
       Future serverFun() async {
         await for (ServerTransportStream stream in server.incomingStreams) {
-          stream.onCancel(expectAsync1((errorCode) {
+          stream.onTerminated = expectAsync1((errorCode) {
             expect(errorCode, 8);
-          }, count: 1));
+          }, count: 1);
           stream.sendHeaders([new Header.ascii('x', 'y')], endStream: false);
           stream.incomingMessages.listen(
             expectAsync1((msg) {
