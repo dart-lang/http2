@@ -110,7 +110,7 @@ class Http2StreamImpl extends TransportStream
     }
   }
 
-  set cancelErrorCode(int errorCode) {
+  set terminatedErrorCode(int errorCode) {
     _terminatedErrorCode = errorCode;
     if (_onTerminated != null) {
       _onTerminated(_terminatedErrorCode);
@@ -618,7 +618,7 @@ class StreamHandler extends Object with TerminatableMixin, ClosableMixin {
   }
 
   void _handleRstFrame(Http2StreamImpl stream, RstStreamFrame frame) {
-    stream.cancelErrorCode = frame.errorCode;
+    stream.terminatedErrorCode = frame.errorCode;
     var exception = new StreamException(
         stream.id, 'Stream was terminated by peer.');
     _closeStreamAbnormally(stream, exception, propagateException: true);
