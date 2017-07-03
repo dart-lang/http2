@@ -262,6 +262,41 @@ main() {
       await Future.wait([serverFun(), clientFun()]);
     });
 
+    transportTest('server-terminates-stream-after-half-close',
+        (ClientTransportConnection client,
+         ServerTransportConnection server) async {
+
+          var readyForError = new Completer();
+
+          Future serverFun() async {
+            await for (ServerTransportStream stream in server.incomingStreams) {
+              stream.sendHeaders([new Header.ascii('x', 'y')], endStream: false);
+              stream.incomingMessages.listen(
+                expectAsync1((msg) async {
+                  expect(msg is HeadersStreamMessage, true);
+                  await readyForError.future;
+                  stream.terminate();
+                }),
+                onError: expectAsync1((_) {}, count: 0),
+                onDone: expectAsync0(() {}, count: 1),
+              );
+            }
+            await server.finish();
+          }
+
+          Future clientFun() async {
+            var headers = [new Header.ascii('a', 'b')];
+            var stream = client.makeRequest(headers, endStream: false);
+            stream.onTerminated = expectAsync1((errorCode) {
+              expect(errorCode, 8);
+            }, count: 1);
+            readyForError.complete();
+            await client.finish();
+          }
+
+          await Future.wait([serverFun(), clientFun()]);
+        });
+
     group('flow-control', () {
       const int kChunkSize = 1024;
       const int kNumberOfMessages = 1000;
