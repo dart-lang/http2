@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.4 - Not yet released
+
+* Added an `onIdle` callback to `Connection`, which is invoked when the number
+  of active streams drops to 0. This can be used to implement an idle connection
+  timeout.
+
 ## 0.1.3
 
 * Fixed a bug where a closed window would not open correctly due to an increase

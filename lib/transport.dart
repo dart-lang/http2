@@ -144,6 +144,12 @@ abstract class TransportConnection {
   /// Pings the other end.
   Future ping();
 
+  /// Sets the idle callback.
+  ///
+  /// This callback is invoked every time the number of active streams on this
+  /// connection becomes 0, making the connection idle.
+  set onIdle(void Function() callback);
+
   /// Finish this connection.
   ///
   /// No new streams will be accepted or can be created.
@@ -210,7 +216,7 @@ abstract class TransportStream {
   /// A sink for writing data and/or headers to the remote end.
   StreamSink<StreamMessage> get outgoingMessages;
 
-  /// Set the termination handler on this stream.
+  /// Sets the termination handler on this stream.
   ///
   /// The handler will be called if the stream receives an RST_STREAM frame.
   set onTerminated(void value(int));

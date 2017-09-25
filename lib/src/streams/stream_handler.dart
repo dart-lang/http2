@@ -149,28 +149,32 @@ class StreamHandler extends Object with TerminatableMixin, ClosableMixin {
 
   bool get ranOutOfStreamIds => _ranOutOfStreamIds();
 
+  final void Function() _onIdle;
+
   StreamHandler._(this._frameWriter, this.incomingQueue, this.outgoingQueue,
-                  this._peerSettings, this._localSettings,
+                  this._peerSettings, this._localSettings, this._onIdle,
                   this.nextStreamId, this.lastRemoteStreamId);
 
   factory StreamHandler.client(FrameWriter writer,
                                ConnectionMessageQueueIn incomingQueue,
                                ConnectionMessageQueueOut outgoingQueue,
                                ActiveSettings peerSettings,
-                               ActiveSettings localSettings) {
+                               ActiveSettings localSettings,
+                               void Function() onIdle) {
     return new StreamHandler._(
         writer, incomingQueue, outgoingQueue, peerSettings, localSettings,
-        1, 0);
+        onIdle, 1, 0);
   }
 
   factory StreamHandler.server(FrameWriter writer,
                                ConnectionMessageQueueIn incomingQueue,
                                ConnectionMessageQueueOut outgoingQueue,
                                ActiveSettings peerSettings,
-                               ActiveSettings localSettings) {
+                               ActiveSettings localSettings,
+                               void Function() onIdle) {
     return new StreamHandler._(
         writer, incomingQueue, outgoingQueue, peerSettings, localSettings,
-        2, -1);
+        onIdle, 2, -1);
   }
 
   void onTerminated(exception) {
@@ -706,6 +710,9 @@ class StreamHandler extends Object with TerminatableMixin, ClosableMixin {
     _openStreams.remove(stream.id);
     if (stream.state != StreamState.Terminated) {
       _changeState(stream, StreamState.Terminated);
+    }
+    if (_openStreams.isEmpty) {
+      _onIdle();
     }
     onCheckForClose();
   }

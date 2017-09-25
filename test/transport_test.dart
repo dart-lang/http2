@@ -299,6 +299,51 @@ main() {
           await Future.wait([serverFun(), clientFun()]);
         });
 
+    transportTest('idle-handler',
+        (ClientTransportConnection client,
+         ServerTransportConnection server) async {
+
+      Future serverFun() async {
+        int idleCount = 0;
+        server.onIdle = expectAsync0((){ idleCount++; }, count: 3);
+        await for (final stream in server.incomingStreams) {
+          stream.sendHeaders([]);
+          stream.incomingMessages.toList().then(
+                  (_) => stream.outgoingMessages.close());
+        }
+        await server.finish();
+        expect(idleCount, 3);
+      }
+
+      Future clientFun() async {
+        int idleCount = 0;
+        client.onIdle = expectAsync0(() { idleCount++; }, count: 3);
+        final streams = new List<ClientTransportStream>.generate(5, (_) => client.makeRequest([]));
+        await Future.wait(streams.map((s) => s.outgoingMessages.close()));
+        await Future.wait(streams.map((s) => s.incomingMessages.toList()));
+        // This extra await is needed to allow the idle handler to run before
+        // verifying the idleCount, because the stream cleanup runs
+        // asynchronously after the stream is closed.
+        await new Future.value();
+        expect(idleCount, 1);
+
+        var stream = client.makeRequest([]);
+        await stream.outgoingMessages.close();
+        await stream.incomingMessages.toList();
+        await new Future.value();
+
+        stream = client.makeRequest([]);
+        await stream.outgoingMessages.close();
+        await stream.incomingMessages.toList();
+        await new Future.value();
+
+        await client.finish();
+        expect(idleCount, 3);
+      }
+
+      await Future.wait([clientFun(), serverFun()]);
+    });
+
     group('flow-control', () {
       const int kChunkSize = 1024;
       const int kNumberOfMessages = 1000;
