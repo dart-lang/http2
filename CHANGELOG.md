@@ -1,10 +1,10 @@
 # Changelog
 
-## 0.1.4 - Not yet released
+## 0.1.4
 
-* Added an `onIdle` callback to `Connection`, which is invoked when the number
-  of active streams drops to 0. This can be used to implement an idle connection
-  timeout.
+* Added an `onActiveStateChanged` callback to `Connection`, which is invoked when
+  the connection changes state from idle to active or from active to idle. This
+  can be used to implement an idle connection timeout.
 
 ## 0.1.3
 

@@ -72,8 +72,8 @@ abstract class Connection {
   /// Whether this connection is a client connection.
   final bool isClientConnection;
 
-  /// Idle handler for this connection.
-  void Function() onIdle;
+  /// Active state handler for this connection.
+  void Function(bool isActive) onActiveStateChanged;
 
   /// The HPack context for this connection.
   final HPackContext _hpackContext = new HPackContext();
@@ -192,12 +192,12 @@ abstract class Connection {
       _streams = new StreamHandler.client(
           _frameWriter, _incomingQueue, _outgoingQueue,
           _settingsHandler.peerSettings, _settingsHandler.acknowledgedSettings,
-          _idleHandler);
+          _activeStateHandler);
     } else {
       _streams = new StreamHandler.server(
           _frameWriter, _incomingQueue, _outgoingQueue,
           _settingsHandler.peerSettings, _settingsHandler.acknowledgedSettings,
-          _idleHandler);
+          _activeStateHandler);
     }
 
     // NOTE: We're not waiting until initial settings have been exchanged
@@ -262,9 +262,9 @@ abstract class Connection {
     return _terminate(ErrorCode.NO_ERROR);
   }
 
-  void _idleHandler() {
-    if (onIdle != null) {
-      onIdle();
+  void _activeStateHandler(bool isActive) {
+    if (onActiveStateChanged != null) {
+      onActiveStateChanged(isActive);
     }
   }
 
