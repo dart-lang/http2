@@ -7,9 +7,8 @@ library http2.multiprotocol_server;
 import 'dart:async';
 import 'dart:io';
 
-import 'package:http2/transport.dart' as http2;
-
 import 'src/artificial_server_socket.dart';
+import 'transport.dart' as http2;
 
 /// Handles protocol negotiation with HTTP/1.1 and HTTP/2 clients.
 ///
