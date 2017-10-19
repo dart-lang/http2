@@ -26,8 +26,6 @@ main() async {
       body = body.toLowerCase();
       expect(body, contains('<html'));
       expect(body, contains('www.google'));
-    }, onPlatform: {
-      'mac-os': new Skip('ALPN not supported on MacOS'),
     });
 
     test('twitter', () async {
@@ -41,8 +39,6 @@ main() async {
 
       expect(body, contains('<!DOCTYPE html>'));
       expect(body, contains('twitter.com'));
-    }, onPlatform: {
-      'mac-os': new Skip('ALPN not supported on MacOS'),
     });
 
     test('nghttp2.org - server push enabled', () async {
@@ -84,8 +80,6 @@ main() async {
       expect(pushes[0][0], '/stylesheets/screen.css');
       expect(pushes[0][1], contains('audio,video{'));
       await connection.close();
-    }, onPlatform: {
-      'mac-os': new Skip('ALPN not supported on MacOS'),
     });
 
     test('nghttp2.org - server push disabled', () async {
@@ -117,8 +111,6 @@ main() async {
       var pushes = results[1];
       expect(pushes, hasLength(0));
       await connection.close();
-    }, onPlatform: {
-      'mac-os': new Skip('ALPN not supported on MacOS'),
     });
   });
 }

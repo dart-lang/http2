@@ -38,8 +38,6 @@ main() {
       for (int i = 0; i < Count; i++) {
         await makeHttp11Request(server, client, i);
       }
-    }, onPlatform: {
-      'mac-os': new Skip('ALPN not supported on MacOS'),
     });
 
     test('http/2', () async {
@@ -64,8 +62,6 @@ main() {
         await makeHttp2Request(server, connection, i);
       }
       await connection.finish();
-    }, onPlatform: {
-      'mac-os': new Skip('ALPN not supported on MacOS'),
     });
   });
 }
