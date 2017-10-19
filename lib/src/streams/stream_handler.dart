@@ -67,9 +67,10 @@ class Http2StreamImpl extends TransportStream
   // Termination handler. Invoked if the stream receives an RST_STREAM frame.
   void Function(int) _onTerminated;
 
-  final Function _canPushFun;
-  final Function _pushStreamFun;
-  final Function _terminateStreamFun;
+  final ZoneUnaryCallback<bool, Http2StreamImpl> _canPushFun;
+  final ZoneBinaryCallback<ServerTransportStream, Http2StreamImpl, List<Header>>
+      _pushStreamFun;
+  final ZoneUnaryCallback<Null, Http2StreamImpl> _terminateStreamFun;
 
   StreamSubscription _outgoingCSubscription;
 
@@ -343,7 +344,8 @@ class StreamHandler extends Object with TerminatableMixin, ClosableMixin {
         !_ranOutOfStreamIds();
   }
 
-  TransportStream _push(Http2StreamImpl stream, List<Header> requestHeaders) {
+  ServerTransportStream _push(
+      Http2StreamImpl stream, List<Header> requestHeaders) {
     if (stream.state != StreamState.Open &&
         stream.state != StreamState.HalfClosedRemote) {
       throw new StateError('Cannot push based on a stream that is neither open '
