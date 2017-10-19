@@ -55,7 +55,7 @@ handleClient(SecureSocket socket) {
         dumpHeaders('${stream.id}', msg.headers);
         if (path == null) {
           path = pathFromHeaders(msg.headers);
-          if (path == null) throw 'no path given';
+          if (path == null) throw new Exception('no path given');
 
           if (path == '/') {
             sendHtml(stream);
