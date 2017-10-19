@@ -16,7 +16,8 @@ class BufferIndicator {
   /// A state variable indicating whether buffereing would occur at the moment.
   bool _wouldBuffer = true;
 
-  /// Indicates whether calling [add] would buffer the data if called.
+  /// Indicates whether calling [BufferedBytesWriter.add] would buffer the data
+  /// if called.
   ///
   /// This can be used at a higher level as a way to do custom buffering and
   /// possibly prioritization.
@@ -37,8 +38,8 @@ class BufferIndicator {
     _wouldBuffer = true;
   }
 
-  /// A broadcast stream notifying users that the [add] method would not buffer
-  /// the data if called.
+  /// A broadcast stream notifying users that the [BufferedBytesWriter.add]
+  /// method would not buffer the data if called.
   Stream get bufferEmptyEvents => _controller.stream;
 }
 

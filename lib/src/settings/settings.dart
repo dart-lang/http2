@@ -84,7 +84,7 @@ class ActiveSettings {
 
 /// Handles remote and local connection [Setting]s.
 ///
-/// Incoming [SettingFrame]s will be handled here to update the peer settings.
+/// Incoming [SettingsFrame]s will be handled here to update the peer settings.
 /// Changes to [_toBeAcknowledgedSettings] can be made, the peer will then be
 /// notified of the setting changes it should use.
 class SettingsHandler extends Object with TerminatableMixin {
