@@ -106,8 +106,8 @@ class SettingsHandler extends Object with TerminatableMixin {
   /// The peer settings, which we ACKed and are obeying.
   final ActiveSettings _peerSettings;
 
-  StreamController<int> _onInitialWindowSizeChangeController =
-      new StreamController.broadcast(sync: true);
+  final _onInitialWindowSizeChangeController =
+      new StreamController<int>.broadcast(sync: true);
 
   /// Events are fired when a SettingsFrame changes the initial size
   /// of stream windows.

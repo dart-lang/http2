@@ -28,7 +28,7 @@ class MultiProtocolHttpServer {
 
   StreamController<http2.ServerTransportStream> _http2Controller;
   Stream<http2.ServerTransportStream> _http2Server;
-  Set<http2.ServerTransportConnection> _http2Connections = new Set();
+  final _http2Connections = new Set<http2.ServerTransportConnection>();
 
   MultiProtocolHttpServer._(this._serverSocket, this._settings) {
     _http11Controller =

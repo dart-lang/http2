@@ -21,7 +21,7 @@ class FrameWriter {
   int _highestWrittenStreamId = 0;
 
   /// Whether this [FrameWriter] is closed.
-  bool _isClosed = false;
+  final bool _isClosed = false;
 
   FrameWriter(
       this._hpackEncoder, StreamSink<List<int>> outgoing, this._peerSettings)

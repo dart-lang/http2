@@ -44,7 +44,7 @@ class TerminatableMixin {
 /// Used by classes which may be closed.
 class ClosableMixin {
   bool _closing = false;
-  Completer _completer = new Completer();
+  final Completer _completer = new Completer();
 
   Future get done => _completer.future;
 
