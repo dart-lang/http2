@@ -75,7 +75,7 @@ main() async {
       expect(body, contains('<!DOCTYPE html>'));
       expect(body, contains('nghttp2'));
 
-      var pushes = results[1];
+      var pushes = results[1] as List<List>;
       expect(pushes, hasLength(1));
       expect(pushes[0][0], '/stylesheets/screen.css');
       expect(pushes[0][1], contains('audio,video{'));
