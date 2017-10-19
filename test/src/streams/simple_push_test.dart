@@ -83,7 +83,7 @@ main() {
           var iterator = new StreamIterator(push.stream.incomingMessages);
           bool hasNext = await iterator.moveNext();
           expect(hasNext, isTrue);
-          testHeaders(iterator.current.headers);
+          testHeaders((iterator.current as HeadersStreamMessage).headers);
 
           String msg = await readData(iterator);
           expect(msg, 'pushing "hello world" :)');

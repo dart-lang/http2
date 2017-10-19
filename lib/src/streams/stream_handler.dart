@@ -70,7 +70,7 @@ class Http2StreamImpl extends TransportStream
   final ZoneUnaryCallback<bool, Http2StreamImpl> _canPushFun;
   final ZoneBinaryCallback<ServerTransportStream, Http2StreamImpl, List<Header>>
       _pushStreamFun;
-  final ZoneUnaryCallback<Null, Http2StreamImpl> _terminateStreamFun;
+  final ZoneUnaryCallback<dynamic, Http2StreamImpl> _terminateStreamFun;
 
   StreamSubscription _outgoingCSubscription;
 

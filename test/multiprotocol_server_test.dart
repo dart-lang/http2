@@ -101,8 +101,7 @@ Future makeHttp2Request(MultiProtocolHttpServer server,
   expect(responseHeaders[':status'], '200');
 
   expect(await si.moveNext(), true);
-  expect(si.current is DataStreamMessage, true);
-  expect(ASCII.decode(si.current.bytes), 'answer$i');
+  expect(ASCII.decode((si.current as DataStreamMessage).bytes), 'answer$i');
 
   expect(await si.moveNext(), false);
 }
