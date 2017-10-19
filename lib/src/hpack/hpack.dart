@@ -10,9 +10,10 @@ library http2.hpack;
 import 'dart:convert';
 import 'dart:io';
 
+import '../byte_utils.dart';
+
 import 'huffman.dart';
 import 'huffman_table.dart';
-import '../byte_utils.dart';
 
 /// Exception raised due to encoding/decoding errors.
 class HPackDecodingException implements Exception {

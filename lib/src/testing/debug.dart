@@ -5,15 +5,13 @@
 library http2.debug;
 
 import 'dart:async';
-import 'dart:io';
-import 'dart:io' show stderr;
 import 'dart:convert';
+import 'dart:io';
 
+import '../../transport.dart';
 import '../connection_preface.dart';
 import '../frames/frames.dart';
 import '../settings/settings.dart';
-
-import '../../transport.dart';
 
 final jsonEncoder = new JsonEncoder.withIndent('  ');
 

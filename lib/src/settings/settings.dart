@@ -6,10 +6,10 @@ library http2.src.settings;
 
 import 'dart:async';
 
+import '../error_handler.dart';
 import '../frames/frames.dart';
 import '../hpack/hpack.dart';
 import '../sync_errors.dart';
-import '../error_handler.dart';
 
 /// The settings a remote peer can choose to set.
 class ActiveSettings {

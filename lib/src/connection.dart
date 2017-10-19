@@ -8,6 +8,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import '../transport.dart';
+import 'connection_preface.dart';
 import 'flowcontrol/connection_queues.dart';
 import 'flowcontrol/window.dart';
 import 'flowcontrol/window_handler.dart';
@@ -18,8 +19,6 @@ import 'ping/ping_handler.dart';
 import 'settings/settings.dart';
 import 'streams/stream_handler.dart';
 import 'sync_errors.dart';
-
-import 'connection_preface.dart';
 
 class ConnectionState {
   /// The connection has been established, we're waiting for the settings frame

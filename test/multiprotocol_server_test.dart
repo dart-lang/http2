@@ -5,8 +5,8 @@
 library http2.test.client_tests;
 
 import 'dart:async';
-import 'dart:io';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:test/test.dart';
 
