@@ -130,7 +130,7 @@ Future handleHttp2Request(ServerTransportStream stream, int i) async {
 }
 
 Map<String, String> getHeaders(HeadersStreamMessage headers) {
-  var map = {};
+  var map = <String, String>{};
   for (var h in headers.headers) {
     map.putIfAbsent(ASCII.decode(h.name), () => ASCII.decode(h.value));
   }

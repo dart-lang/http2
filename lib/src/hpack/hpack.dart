@@ -104,7 +104,7 @@ class HPackDecoder {
     }
 
     Header readHeaderFieldInternal(int index, {bool neverIndexed: false}) {
-      var name, value;
+      List<int> name, value;
       if (index > 0) {
         name = _table.lookup(index).name;
         value = readStringLiteral();

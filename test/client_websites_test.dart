@@ -54,7 +54,7 @@ main() async {
       dumpHeaders(uri, response.headers);
 
       Future<List<List>> accumulatePushes() async {
-        var futures = [];
+        var futures = <Future<List>>[];
         return response.serverPushes
             .listen((ServerPush push) {
               futures.add(push.response.then((Response response) {
@@ -98,7 +98,7 @@ main() async {
       dumpHeaders(uri, response.headers);
 
       Future<List<List>> accumulatePushes() async {
-        var futures = [];
+        var futures = <Future<List>>[];
         return response.serverPushes
             .listen((ServerPush push) {
               futures.add(push.response

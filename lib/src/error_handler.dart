@@ -26,7 +26,7 @@ class TerminatableMixin {
     // Subclasses can override this method if they want.
   }
 
-  dynamic ensureNotTerminatedSync(f()) {
+  T ensureNotTerminatedSync<T>(T f()) {
     if (wasTerminated) {
       throw new TerminatedException();
     }

@@ -268,7 +268,7 @@ class ConnectionMessageQueueIn extends Object
   /// Processes an incoming [PushPromiseFrame] which is addressed to a specific
   /// stream.
   void processPushPromiseFrame(
-      PushPromiseFrame frame, TransportStream pushedStream) {
+      PushPromiseFrame frame, ClientTransportStream pushedStream) {
     var streamId = frame.header.streamId;
     var message = new PushPromiseMessage(streamId, frame.decodedHeaders,
         frame.promisedStreamId, pushedStream, false);

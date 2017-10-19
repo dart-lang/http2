@@ -98,12 +98,12 @@ class Http2StreamImpl extends TransportStream
   ///
   /// The [requestHeaders] are the headers to which the pushed stream
   /// responds to.
-  TransportStream push(List<Header> requestHeaders) =>
+  ServerTransportStream push(List<Header> requestHeaders) =>
       _pushStreamFun(this, requestHeaders);
 
   void terminate() => _terminateStreamFun(this);
 
-  set onTerminated(void handler(int)) {
+  set onTerminated(void handler(int v)) {
     _onTerminated = handler;
     if (_terminatedErrorCode != null && _onTerminated != null) {
       _onTerminated(_terminatedErrorCode);
@@ -225,7 +225,7 @@ class StreamHandler extends Object with TerminatableMixin, ClosableMixin {
     return !isLocalStream;
   }
 
-  TransportStream newStream(List<Header> headers, {bool endStream: false}) {
+  Http2StreamImpl newStream(List<Header> headers, {bool endStream: false}) {
     return ensureNotTerminatedSync(() {
       var stream = newLocalStream();
       _sendHeaders(stream, headers, endStream: endStream);
@@ -233,7 +233,7 @@ class StreamHandler extends Object with TerminatableMixin, ClosableMixin {
     });
   }
 
-  TransportStream newLocalStream() {
+  Http2StreamImpl newLocalStream() {
     return ensureNotTerminatedSync(() {
       assert(_canCreateNewStream());
 
@@ -247,7 +247,7 @@ class StreamHandler extends Object with TerminatableMixin, ClosableMixin {
     });
   }
 
-  TransportStream newRemoteStream(int remoteStreamId) {
+  Http2StreamImpl newRemoteStream(int remoteStreamId) {
     return ensureNotTerminatedSync(() {
       assert(remoteStreamId <= MAX_STREAM_ID);
       // NOTE: We cannot enforce that a new stream id is 2 higher than the last
@@ -304,7 +304,7 @@ class StreamHandler extends Object with TerminatableMixin, ClosableMixin {
 
     incomingQueue.insertNewStreamMessageQueue(streamId, streamQueueIn);
 
-    var _outgoingC = new StreamController();
+    var _outgoingC = new StreamController<StreamMessage>();
     var stream = new Http2StreamImpl(
         streamQueueIn,
         streamQueueOut,
@@ -745,7 +745,7 @@ class StreamHandler extends Object with TerminatableMixin, ClosableMixin {
     }
   }
 
-  void _closeStreamAbnormally(Http2StreamImpl stream, Exception exception,
+  void _closeStreamAbnormally(Http2StreamImpl stream, Object exception,
       {bool propagateException: false}) {
     incomingQueue.removeStreamMessageQueue(stream.id);
 

@@ -76,10 +76,10 @@ class ActiveSettings {
   ActiveSettings(
       {this.headerTableSize: 4096,
       this.enablePush: true,
-      this.maxConcurrentStreams: null,
+      this.maxConcurrentStreams,
       this.initialWindowSize: (1 << 16) - 1,
       this.maxFrameSize: (1 << 14),
-      this.maxHeaderListSize: null});
+      this.maxHeaderListSize});
 }
 
 /// Handles remote and local connection [Setting]s.
