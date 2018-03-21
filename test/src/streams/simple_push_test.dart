@@ -38,8 +38,7 @@ main() {
 
       Completer serverReceivedAllBytes = new Completer();
 
-      Future<String> readData(
-          StreamIterator<StreamMessage> iterator) async {
+      Future<String> readData(StreamIterator<StreamMessage> iterator) async {
         var all = <int>[];
 
         while (await iterator.moveNext()) {
