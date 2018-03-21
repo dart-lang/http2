@@ -19,8 +19,8 @@ main() {
 
     group('stream-message-queue-out', () {
       test('window-big-enough', () {
-        var connectionQueueMock = new MockConnectionMessageQueueOut();
-        var windowMock = new MockOutgoingStreamWindowHandler();
+        dynamic connectionQueueMock = new MockConnectionMessageQueueOut();
+        dynamic windowMock = new MockOutgoingStreamWindowHandler();
 
         windowMock.positiveWindow.markUnBuffered();
         var queue = new StreamMessageQueueOut(
@@ -43,8 +43,8 @@ main() {
       });
 
       test('window-smaller-than-necessary', () {
-        var connectionQueueMock = new MockConnectionMessageQueueOut();
-        var windowMock = new MockOutgoingStreamWindowHandler();
+        dynamic connectionQueueMock = new MockConnectionMessageQueueOut();
+        dynamic windowMock = new MockOutgoingStreamWindowHandler();
 
         windowMock.positiveWindow.markUnBuffered();
         var queue = new StreamMessageQueueOut(
@@ -95,8 +95,8 @@ main() {
 
     group('stream-message-queue-in', () {
       test('data-end-of-stream', () {
-        var windowMock = new MockIncomingWindowHandler();
-        var queue = new StreamMessageQueueIn(windowMock);
+        dynamic windowMock = new MockIncomingWindowHandler();
+        dynamic queue = new StreamMessageQueueIn(windowMock);
 
         expect(queue.pendingMessages, 0);
         queue.messages.listen(expectAsync1((StreamMessage message) {
@@ -119,8 +119,8 @@ main() {
       const STREAM_ID = 99;
       final bytes = [1, 2, 3];
 
-      var windowMock = new MockIncomingWindowHandler();
-      var queue = new StreamMessageQueueIn(windowMock);
+      dynamic windowMock = new MockIncomingWindowHandler();
+      dynamic queue = new StreamMessageQueueIn(windowMock);
 
       var sub = queue.messages.listen(expectAsync1((_) {}, count: 0),
           onDone: expectAsync0(() {}, count: 0));
