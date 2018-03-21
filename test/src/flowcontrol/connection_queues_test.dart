@@ -116,7 +116,9 @@ main() {
       streamQueueMock.bufferIndicator.markUnBuffered();
       verify(windowMock.dataProcessed(bytes.length)).called(1);
       DataMessage capturedMessage =
-          verify(streamQueueMock.enqueueMessage(captureAny)).captured.single;
+          verify(streamQueueMock.enqueueMessage(typed(captureAny)))
+              .captured
+              .single;
       expect(capturedMessage.streamId, STREAM_ID);
       expect(capturedMessage.bytes, bytes);
 
