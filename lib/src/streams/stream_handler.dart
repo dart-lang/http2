@@ -150,6 +150,8 @@ class StreamHandler extends Object with TerminatableMixin, ClosableMixin {
 
   bool get ranOutOfStreamIds => _ranOutOfStreamIds();
 
+  /// Whether it is possible to open a new stream to the remote end (e.g. based
+  /// on whether we have reached the limit of maximum concurrent open streams).
   bool get canOpenStream => _canCreateNewStream();
 
   final ActiveStateHandler _onActiveStateChanged;
