@@ -150,6 +150,8 @@ class StreamHandler extends Object with TerminatableMixin, ClosableMixin {
 
   bool get ranOutOfStreamIds => _ranOutOfStreamIds();
 
+  bool get canOpenStream => _canCreateNewStream();
+
   final ActiveStateHandler _onActiveStateChanged;
 
   StreamHandler._(
@@ -188,6 +190,12 @@ class StreamHandler extends Object with TerminatableMixin, ClosableMixin {
     _openStreams.values.toList().forEach((stream) =>
         _closeStreamAbnormally(stream, exception, propagateException: true));
     startClosing();
+  }
+
+  void forceDispatchIncomingMessages() {
+    _openStreams.forEach((int streamId, Http2StreamImpl stream) {
+      stream.incomingQueue.forceDispatchIncomingMessages();
+    });
   }
 
   Stream<TransportStream> get incomingStreams => _newStreamsC.stream;
@@ -645,8 +653,8 @@ class StreamHandler extends Object with TerminatableMixin, ClosableMixin {
 
   void _handleRstFrame(Http2StreamImpl stream, RstStreamFrame frame) {
     stream._handleTerminated(frame.errorCode);
-    var exception =
-        new StreamException(stream.id, 'Stream was terminated by peer.');
+    var exception = new StreamTransportException(
+        'Stream was terminated by peer (errorCode: ${frame.errorCode}).');
     _closeStreamAbnormally(stream, exception, propagateException: true);
   }
 
