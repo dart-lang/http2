@@ -57,8 +57,8 @@ main() {
 
     const int concurrentStreamLimit = 5;
     transportTest('exhaust-concurrent-stream-limit',
-        (ClientTransportConnection client, ServerTransportConnection server) async {
-
+        (ClientTransportConnection client,
+            ServerTransportConnection server) async {
       Future clientFun() async {
         // We have to wait until the max-concurrent-streams [Setting] was
         // transferred from server to client, which is asynchronous.
@@ -89,8 +89,9 @@ main() {
       }
 
       await Future.wait([clientFun(), serverFun()]);
-    }, serverSettings: new ServerSettings(
-        concurrentStreamLimit: concurrentStreamLimit));
+    },
+        serverSettings:
+            new ServerSettings(concurrentStreamLimit: concurrentStreamLimit));
 
     transportTest('disabled-push', (ClientTransportConnection client,
         ServerTransportConnection server) async {
@@ -533,6 +534,6 @@ class BidirectionalConnection {
           settings: clientSettings);
 
   ServerTransportConnection get serverConnection =>
-    new ServerTransportConnection.viaStreams(readB, writeA.sink,
-        settings: serverSettings);
+      new ServerTransportConnection.viaStreams(readB, writeA.sink,
+          settings: serverSettings);
 }
