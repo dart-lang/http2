@@ -174,21 +174,25 @@ class StreamMessageQueueIn extends Object
     // incoming messages will get buffered.
     bufferIndicator.markBuffered();
 
-    _incomingMessagesC = new StreamController(onListen: () {
-      if (!wasClosed && !wasTerminated) {
-        _tryDispatch();
-        _tryUpdateBufferIndicator();
-      }
-    }, onPause: () {
-      _tryUpdateBufferIndicator();
-      // TODO: Would we ever want to decrease the window size in this
-      // situation?
-    }, onResume: () {
-      if (!wasClosed && !wasTerminated) {
-        _tryDispatch();
-        _tryUpdateBufferIndicator();
-      }
-    }, onCancel: cancel);
+    _incomingMessagesC = new StreamController(
+        onListen: () {
+          if (!wasClosed && !wasTerminated) {
+            _tryDispatch();
+            _tryUpdateBufferIndicator();
+          }
+        },
+        onPause: () {
+          _tryUpdateBufferIndicator();
+          // TODO: Would we ever want to decrease the window size in this
+          // situation?
+        },
+        onResume: () {
+          if (!wasClosed && !wasTerminated) {
+            _tryDispatch();
+            _tryUpdateBufferIndicator();
+          }
+        },
+        onCancel: cancel);
 
     _serverPushStreamsC = new StreamController(onListen: () {
       if (!wasClosed && !wasTerminated) {
@@ -282,7 +286,7 @@ class StreamMessageQueueIn extends Object
 
       var message = _pendingMessages.first;
       if (wasCancelled) {
-          _pendingMessages.removeFirst();
+        _pendingMessages.removeFirst();
       } else if (message is HeadersMessage || message is DataMessage) {
         assert(!_incomingMessagesC.isClosed);
         if (_incomingMessagesC.hasListener && !_incomingMessagesC.isPaused) {
