@@ -152,7 +152,7 @@ class StreamMessageQueueOut extends Object
 /// It will keep messages up to the stream flow control window size if the
 /// [messages] listener is paused.
 class StreamMessageQueueIn extends Object
-    with TerminatableMixin, ClosableMixin {
+    with TerminatableMixin, ClosableMixin, CancellableMixin {
   /// The stream-level window our peer is using when sending us messages.
   final IncomingWindowHandler windowHandler;
 
@@ -188,11 +188,7 @@ class StreamMessageQueueIn extends Object
         _tryDispatch();
         _tryUpdateBufferIndicator();
       }
-    }, onCancel: () {
-      _pendingMessages.clear();
-      startClosing();
-      onCloseCheck();
-    });
+    }, onCancel: cancel);
 
     _serverPushStreamsC = new StreamController(onListen: () {
       if (!wasClosed && !wasTerminated) {
@@ -282,10 +278,12 @@ class StreamMessageQueueIn extends Object
 
   void _tryDispatch() {
     while (!wasTerminated && _pendingMessages.isNotEmpty) {
-      bool handled = false;
+      bool handled = wasCancelled;
 
       var message = _pendingMessages.first;
-      if (message is HeadersMessage || message is DataMessage) {
+      if (wasCancelled) {
+          _pendingMessages.removeFirst();
+      } else if (message is HeadersMessage || message is DataMessage) {
         assert(!_incomingMessagesC.isClosed);
         if (_incomingMessagesC.hasListener && !_incomingMessagesC.isPaused) {
           _pendingMessages.removeFirst();

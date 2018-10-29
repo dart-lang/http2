@@ -330,6 +330,13 @@ class StreamHandler extends Object with TerminatableMixin, ClosableMixin {
 
     _setupOutgoingMessageHandling(stream);
 
+    // handle incoming stream cancelation
+    streamQueueIn.onCancel.then((_) {
+      if (!streamQueueIn.wasClosed && !streamQueueIn.wasTerminated) {
+        _frameWriter.writeRstStreamFrame(streamId, ErrorCode.CANCEL);
+      }
+    });
+
     // NOTE: We are not interested whether the streams were normally finished
     // or abnormally terminated. Therefore we use 'catchError((_) {})'!
     var streamDone = [streamQueueIn.done, streamQueueOut.done];
