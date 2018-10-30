@@ -44,7 +44,7 @@ class TerminatableMixin {
 /// Used by classes which may be cancelled.
 class CancellableMixin {
   bool _cancelled = false;
-  final _cancelCompleter = new Completer<void>();
+  final _cancelCompleter = new Completer<void>.sync();
 
   Future<void> get onCancel => _cancelCompleter.future;
 

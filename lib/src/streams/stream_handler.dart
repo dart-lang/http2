@@ -330,9 +330,13 @@ class StreamHandler extends Object with TerminatableMixin, ClosableMixin {
 
     _setupOutgoingMessageHandling(stream);
 
-    // handle incoming stream cancelation
+    // handle incoming stream cancellation. RST is only sent when streamQueueOut
+    // has been closed because RST make the stream 'closed'.
     streamQueueIn.onCancel.then((_) {
-      if (!streamQueueIn.wasClosed && !streamQueueIn.wasTerminated) {
+      if (streamQueueIn.wasCancelled &&
+          !streamQueueIn.wasClosed &&
+          !streamQueueIn.wasTerminated &&
+          (streamQueueOut.wasClosed || streamQueueOut.wasTerminated)) {
         _frameWriter.writeRstStreamFrame(streamId, ErrorCode.CANCEL);
       }
     });
