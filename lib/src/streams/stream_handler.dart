@@ -330,14 +330,16 @@ class StreamHandler extends Object with TerminatableMixin, ClosableMixin {
 
     _setupOutgoingMessageHandling(stream);
 
-    // handle incoming stream cancellation. RST is only sent when streamQueueOut
+    // Handle incoming stream cancellation. RST is only sent when streamQueueOut
     // has been closed because RST make the stream 'closed'.
     streamQueueIn.onCancel.then((_) {
-      if (streamQueueIn.wasCancelled &&
-          !streamQueueIn.wasClosed &&
-          !streamQueueIn.wasTerminated &&
-          (streamQueueOut.wasClosed || streamQueueOut.wasTerminated)) {
-        _frameWriter.writeRstStreamFrame(streamId, ErrorCode.CANCEL);
+      // If our side is done sending data, i.e. we have enqueued the
+      // end-of-stream in the outgoing message queue, but the remote end is
+      // still sending us data, despite us not being interested in it, we will
+      // reset the stream.
+      if (stream.state == StreamState.HalfClosedLocal) {
+        stream.outgoingQueue.enqueueMessage(
+            new ResetStreamMessage(stream.id, ErrorCode.CANCEL));
       }
     });
 

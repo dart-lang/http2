@@ -286,6 +286,9 @@ main() {
           win = await nextFrame() as WindowUpdateFrame;
           expect(win.header.streamId, 0);
           expect(win.windowSizeIncrement, 1);
+          win = await nextFrame() as WindowUpdateFrame;
+          expect(win.header.streamId, 0);
+          expect(win.windowSizeIncrement, 1);
 
           // Make sure we get a [RstStreamFrame] frame.
           var frame = await nextFrame();
@@ -296,10 +299,6 @@ main() {
           serverWriter.writeRstStreamFrame(streamId, ErrorCode.STREAM_CLOSED);
 
           endDone.complete();
-
-          win = await nextFrame() as WindowUpdateFrame;
-          expect(win.header.streamId, 0);
-          expect(win.windowSizeIncrement, 1);
 
           // Wait for the client finish.
           expect(await nextFrame() is GoawayFrame, true);

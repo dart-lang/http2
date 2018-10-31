@@ -68,22 +68,21 @@ class StreamMessageQueueOut extends Object
   /// Enqueues a new [Message] which is to be delivered to the connection
   /// message queue.
   void enqueueMessage(Message message) {
-    ensureNotClosingSync(() {
-      if (!wasTerminated) {
-        if (message.endStream) startClosing();
+    if (message is! ResetStreamMessage) ensureNotClosingSync(() {});
+    if (!wasTerminated) {
+      if (message.endStream) startClosing();
 
-        if (message is DataMessage) {
-          toBeWrittenBytes += message.bytes.length;
-        }
-
-        _messages.addLast(message);
-        _trySendData();
-
-        if (_messages.length > 0) {
-          bufferIndicator.markBuffered();
-        }
+      if (message is DataMessage) {
+        toBeWrittenBytes += message.bytes.length;
       }
-    });
+
+      _messages.addLast(message);
+      _trySendData();
+
+      if (_messages.length > 0) {
+        bufferIndicator.markBuffered();
+      }
+    }
   }
 
   void onTerminated(error) {
@@ -134,6 +133,9 @@ class StreamMessageQueueOut extends Object
         } else {
           break;
         }
+      } else if (message is ResetStreamMessage) {
+        _messages.removeFirst();
+        connectionMessageQueue.enqueueMessage(message);
       } else {
         throw new StateError('Unknown messages type: ${message.runtimeType}');
       }
