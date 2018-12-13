@@ -35,7 +35,7 @@ implementation (by using a `SecurityContext` and including 'h2' in the list of p
 ALPN).
 
 For a simple example on how to connect to a http/2 capable server and requesting a resource see:
-[https://github.com/dart-lang/http2/blob/master/example/display_headers.dart].
+https://github.com/dart-lang/http2/blob/master/example/display_headers.dart.
 
 
 ## Features and bugs
