@@ -5,18 +5,12 @@ import 'dart:io';
 import 'package:http2/transport.dart';
 
 main(List<String> args) async {
-  String uriArg;
-  if (args.length != 1) {
+  if (args == null || args.length != 1) {
     print('Usage: dart display_headers.dart <HTTPS_URI>');
-  }
-  if (args.length == 0) {
-    uriArg = 'https://www.google.com/';
-    print("Assuming URI: '$uriArg'");
-  } else if (args.length > 1) {
     exit(1);
-  } else {
-    uriArg = args[0];
   }
+
+  var uriArg = args[0];
 
   if (!uriArg.startsWith('https://')) {
     print('URI must start with https://');
@@ -25,30 +19,29 @@ main(List<String> args) async {
 
   var uri = Uri.parse(uriArg);
 
-  Socket socket = await connect(uri);
+  var socket = await connect(uri);
 
   // The default client settings will disable server pushes. We
   // therefore do not need to deal with [stream.peerPushes].
   var transport = new ClientTransportConnection.viaSocket(socket);
 
-  var headers = <Header>[
-    Header.ascii(':method', 'GET'),
-    Header.ascii(':path', uri.path),
-    Header.ascii(':scheme', uri.scheme),
-    Header.ascii(':authority', uri.host),
+  var headers = [
+    new Header.ascii(':method', 'GET'),
+    new Header.ascii(':path', uri.path),
+    new Header.ascii(':scheme', uri.scheme),
+    new Header.ascii(':authority', uri.host),
   ];
 
-  ClientTransportStream stream =
-      transport.makeRequest(headers, endStream: true);
+  var stream = transport.makeRequest(headers, endStream: true);
   await for (var message in stream.incomingMessages) {
     if (message is HeadersStreamMessage) {
       for (var header in message.headers) {
         var name = utf8.decode(header.name);
         var value = utf8.decode(header.value);
-        print('Header: $name: $value');
+        print('$name: $value');
       }
     } else if (message is DataStreamMessage) {
-      print('DatastreamMessage: ${message.bytes.length} bytes');
+      // Use [message.bytes] (but respect 'content-encoding' header)
     }
   }
   await transport.finish();
