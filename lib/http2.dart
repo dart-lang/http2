@@ -46,4 +46,3 @@ library http2.http2;
 
 import 'transport.dart';
 export 'transport.dart';
-
