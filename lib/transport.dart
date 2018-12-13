@@ -40,9 +40,8 @@
 /// `dart:io`s secure socket implementation (by using a `SecurityContext` and
 /// including 'h2' in the list of protocols used for ALPN).
 ///
-///
-/// For a simple example on how to connect to a http/2 capable server and
-/// requesting a resource see: https://github.com/dart-lang/http2/blob/master/example/display_headers.dart.
+/// A simple example on how to connect to a http/2 capable server and
+/// requesting a resource is available at https://github.com/dart-lang/http2/blob/master/example/display_headers.dart.
 library http2.transport;
 
 import 'dart:async';
