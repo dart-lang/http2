@@ -79,7 +79,7 @@ class StreamMessageQueueOut extends Object
       _messages.addLast(message);
       _trySendData();
 
-      if (_messages.length > 0) {
+      if (_messages.isNotEmpty) {
         bufferIndicator.markBuffered();
       }
     }
@@ -97,7 +97,7 @@ class StreamMessageQueueOut extends Object
   void _trySendData() {
     int queueLenBefore = _messages.length;
 
-    while (_messages.length > 0) {
+    while (_messages.isNotEmpty) {
       Message message = _messages.first;
 
       if (message is HeadersMessage) {
@@ -105,7 +105,7 @@ class StreamMessageQueueOut extends Object
         connectionMessageQueue.enqueueMessage(message);
       } else if (message is DataMessage) {
         int bytesAvailable = streamWindow.peerWindowSize;
-        if (bytesAvailable > 0 || message.bytes.length == 0) {
+        if (bytesAvailable > 0 || message.bytes.isEmpty) {
           _messages.removeFirst();
 
           // Do we need to fragment?
@@ -268,7 +268,7 @@ class StreamMessageQueueIn extends Object
         _incomingMessagesC.add(new HeadersStreamMessage(message.headers,
             endStream: message.endStream));
       } else if (message is DataMessage) {
-        if (message.bytes.length > 0) {
+        if (message.bytes.isNotEmpty) {
           _incomingMessagesC.add(new DataStreamMessage(message.bytes,
               endStream: message.endStream));
         }
@@ -299,7 +299,7 @@ class StreamMessageQueueIn extends Object
             _incomingMessagesC.add(new HeadersStreamMessage(message.headers,
                 endStream: message.endStream));
           } else if (message is DataMessage) {
-            if (message.bytes.length > 0) {
+            if (message.bytes.isNotEmpty) {
               _incomingMessagesC.add(new DataStreamMessage(message.bytes,
                   endStream: message.endStream));
               windowHandler.dataProcessed(message.bytes.length);

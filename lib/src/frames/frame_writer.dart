@@ -31,7 +31,7 @@ class FrameWriter {
   /// sink.
   int get highestWrittenStreamId => _highestWrittenStreamId;
 
-  void writeDataFrame(int streamId, List<int> data, {bool endStream: false}) {
+  void writeDataFrame(int streamId, List<int> data, {bool endStream = false}) {
     while (data.length > _peerSettings.maxFrameSize) {
       var chunk = viewOrSublist(data, 0, _peerSettings.maxFrameSize);
       data = viewOrSublist(data, _peerSettings.maxFrameSize,
@@ -57,7 +57,7 @@ class FrameWriter {
   }
 
   void writeHeadersFrame(int streamId, List<Header> headers,
-      {bool endStream: true}) {
+      {bool endStream = true}) {
     var fragment = _hpackEncoder.encode(headers);
     var maxSize =
         _peerSettings.maxFrameSize - HeadersFrame.MAX_CONSTANT_PAYLOAD;
@@ -112,7 +112,7 @@ class FrameWriter {
   }
 
   void writePriorityFrame(int streamId, int streamDependency, int weight,
-      {bool exclusive: false}) {
+      {bool exclusive = false}) {
     int type = FrameType.PRIORITY;
     int flags = 0;
 
@@ -221,7 +221,7 @@ class FrameWriter {
     _writeData(buffer);
   }
 
-  void writePingFrame(int opaqueData, {bool ack: false}) {
+  void writePingFrame(int opaqueData, {bool ack = false}) {
     int type = FrameType.PING;
     int flags = ack ? PingFrame.FLAG_ACK : 0;
 
@@ -253,7 +253,7 @@ class FrameWriter {
     _writeData(buffer);
   }
 
-  void writeWindowUpdate(int sizeIncrement, {int streamId: 0}) {
+  void writeWindowUpdate(int sizeIncrement, {int streamId = 0}) {
     int type = FrameType.WINDOW_UPDATE;
     int flags = 0;
 

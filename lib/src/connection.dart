@@ -65,7 +65,7 @@ class ConnectionState {
 
     void add(bool condition, String flag) {
       if (condition) {
-        if (message.length == 0) {
+        if (message.isEmpty) {
           message = flag;
         } else {
           message = '$message/$flag';
@@ -140,7 +140,7 @@ abstract class Connection {
 
   Connection(Stream<List<int>> incoming, StreamSink<List<int>> outgoing,
       Settings settings,
-      {this.isClientConnection: true}) {
+      {this.isClientConnection = true}) {
     _setupConnection(incoming, outgoing, settings);
   }
 
@@ -365,7 +365,7 @@ abstract class Connection {
     }
   }
 
-  void _finishing({bool active: true, String message}) {
+  void _finishing({bool active = true, String message}) {
     // If this connection is already dead, we return.
     if (_state.isTerminated) return;
 
@@ -403,7 +403,7 @@ abstract class Connection {
   ///
   /// The returned future will never complete with an error.
   Future _terminate(int errorCode,
-      {bool causedByTransportError: false, String message}) {
+      {bool causedByTransportError = false, String message}) {
     // TODO: When do we complete here?
     if (_state.state != ConnectionState.Terminated) {
       _state.state = ConnectionState.Terminated;
@@ -456,7 +456,7 @@ class ClientConnection extends Connection implements ClientTransportConnection {
       !_state.isFinishing && !_state.isTerminated && _streams.canOpenStream;
 
   ClientTransportStream makeRequest(List<Header> headers,
-      {bool endStream: false}) {
+      {bool endStream = false}) {
     if (_state.isFinishing) {
       throw new StateError(
           'The http/2 connection is finishing and can therefore not be used to '
