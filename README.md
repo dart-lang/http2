@@ -1,11 +1,12 @@
-# HTTP/2 for Dart
+[![Pub Package](https://img.shields.io/pub/v/http2.svg)](https://pub.dev/packages/http2)
+[![Build Status](https://travis-ci.org/dart-lang/http2.svg?branch=master)](https://travis-ci.org/dart-lang/http2)
 
-This library provides an http/2 interface on top of a bidirectional stream of bytes.
+Provides an http/2 interface on top of a bidirectional stream of bytes.
 
 ## Usage:
 
-Here is a minimal example of connecting to a http/2 capable server, requesting a resource and
-iterating over the response.
+Here is a minimal example of connecting to a http/2 capable server, requesting a
+resource and iterating over the response.
 
 ```dart
 import 'dart:convert';
