@@ -113,11 +113,11 @@ class HeadersFrame extends Frame {
   HeadersFrame addBlockContinuation(ContinuationFrame frame) {
     var fragment = frame.headerBlockFragment;
     var flags = header.flags | frame.header.flags;
-    var fh = new FrameHeader(
+    var fh = FrameHeader(
         header.length + fragment.length, header.type, flags, header.streamId);
 
     var mergedHeaderBlockFragment =
-        new Uint8List(headerBlockFragment.length + fragment.length);
+        Uint8List(headerBlockFragment.length + fragment.length);
 
     mergedHeaderBlockFragment.setRange(
         0, headerBlockFragment.length, headerBlockFragment);
@@ -125,8 +125,8 @@ class HeadersFrame extends Frame {
     mergedHeaderBlockFragment.setRange(
         headerBlockFragment.length, mergedHeaderBlockFragment.length, fragment);
 
-    return new HeadersFrame(fh, padLength, exclusiveDependency,
-        streamDependency, weight, mergedHeaderBlockFragment);
+    return HeadersFrame(fh, padLength, exclusiveDependency, streamDependency,
+        weight, mergedHeaderBlockFragment);
   }
 
   Map toJson() => super.toJson()
@@ -230,11 +230,11 @@ class PushPromiseFrame extends Frame {
   PushPromiseFrame addBlockContinuation(ContinuationFrame frame) {
     var fragment = frame.headerBlockFragment;
     var flags = header.flags | frame.header.flags;
-    var fh = new FrameHeader(
+    var fh = FrameHeader(
         header.length + fragment.length, header.type, flags, header.streamId);
 
     var mergedHeaderBlockFragment =
-        new Uint8List(headerBlockFragment.length + fragment.length);
+        Uint8List(headerBlockFragment.length + fragment.length);
 
     mergedHeaderBlockFragment.setRange(
         0, headerBlockFragment.length, headerBlockFragment);
@@ -242,7 +242,7 @@ class PushPromiseFrame extends Frame {
     mergedHeaderBlockFragment.setRange(
         headerBlockFragment.length, mergedHeaderBlockFragment.length, fragment);
 
-    return new PushPromiseFrame(
+    return PushPromiseFrame(
         fh, padLength, promisedStreamId, mergedHeaderBlockFragment);
   }
 

@@ -36,7 +36,7 @@ class HuffmanDecoder {
 
   /// Decodes [bytes] using a huffman tree.
   List<int> decode(List<int> bytes) {
-    var buffer = new BytesBuilder();
+    var buffer = BytesBuilder();
 
     int currentByteOffset = 0;
     HuffmanTreeNode node = _root;
@@ -53,7 +53,7 @@ class HuffmanDecoder {
         currentDepth++;
         if (node.value != null) {
           if (node.value == EOS_BYTE) {
-            throw new HuffmanDecodingException(
+            throw HuffmanDecodingException(
                 'More than 7 bit padding is not allowed. Found entire EOS '
                 'encoding');
           }
@@ -67,14 +67,14 @@ class HuffmanDecoder {
 
     if (node != _root) {
       if (currentDepth > 7) {
-        throw new HuffmanDecodingException(
+        throw HuffmanDecodingException(
             'Incomplete encoding of a byte or more than 7 bit padding.');
       }
 
       while (node.right != null) node = node.right;
 
       if (node.value != 256) {
-        throw new HuffmanDecodingException('Incomplete encoding of a byte.');
+        throw HuffmanDecodingException('Incomplete encoding of a byte.');
       }
     }
 
@@ -90,7 +90,7 @@ class HuffmanEncoder {
 
   /// Encodes [bytes] using a list of codewords.
   List<int> encode(List<int> bytes) {
-    var buffer = new BytesBuilder();
+    var buffer = BytesBuilder();
 
     int currentByte = 0;
     int currentBitOffset = 7;
@@ -153,7 +153,7 @@ class HuffmanTreeNode {
 
 /// Generates a huffman decoding tree.
 HuffmanTreeNode generateHuffmanTree(List<EncodedHuffmanValue> valueEncodings) {
-  HuffmanTreeNode root = new HuffmanTreeNode();
+  HuffmanTreeNode root = HuffmanTreeNode();
 
   for (int byteOffset = 0; byteOffset < valueEncodings.length; byteOffset++) {
     var entry = valueEncodings[byteOffset];
@@ -165,12 +165,12 @@ HuffmanTreeNode generateHuffmanTree(List<EncodedHuffmanValue> valueEncodings) {
 
       if (right) {
         if (current.right == null) {
-          current.right = new HuffmanTreeNode();
+          current.right = HuffmanTreeNode();
         }
         current = current.right;
       } else {
         if (current.left == null) {
-          current.left = new HuffmanTreeNode();
+          current.left = HuffmanTreeNode();
         }
         current = current.left;
       }
