@@ -658,7 +658,8 @@ main() {
               client.makeRequest([Header.ascii('a', 'b')], endStream: false);
 
           // Make sure we don't get messages/pushes on the terminated stream.
-          unawaited(stream.incomingMessages.toList().catchError(expectAsync1((e) {
+          unawaited(
+              stream.incomingMessages.toList().catchError(expectAsync1((e) {
             expect(
                 '$e',
                 contains('This stream was not processed and can '
