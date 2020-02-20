@@ -20,7 +20,7 @@ void main() {
       var allBytes = List.generate(numOfOneKB * 1024, (i) => i % 256);
       allBytes.addAll(List.generate(42, (i) => 42));
 
-       void Function(StreamMessage) headersTestFun(String type) {
+      void Function(StreamMessage) headersTestFun(String type) {
         return expectAsync1((StreamMessage msg) {
           expect(msg is HeadersStreamMessage, isTrue);
           expect((msg as HeadersStreamMessage).headers.first.name,
