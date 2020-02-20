@@ -5,36 +5,37 @@
 import 'dart:async';
 import 'dart:convert' show utf8;
 
-import 'package:test/test.dart';
 import 'package:http2/transport.dart';
+import 'package:pedantic/pedantic.dart';
+import 'package:test/test.dart';
 
 import 'helper.dart';
 
-main() {
+void main() {
   group('streams', () {
     group('server-push', () {
-      const int numOfOneKB = 1000;
+      const numOfOneKB = 1000;
 
       var expectedHeaders = [Header.ascii('key', 'value')];
       var allBytes = List.generate(numOfOneKB * 1024, (i) => i % 256);
       allBytes.addAll(List.generate(42, (i) => 42));
 
-      testHeaders(List<Header> headers) {
+      void testHeaders(List<Header> headers) {
         expect(headers.length, expectedHeaders.length);
-        for (int i = 0; i < headers.length; i++) {
+        for (var i = 0; i < headers.length; i++) {
           expect(headers[i].name, expectedHeaders[i].name);
           expect(headers[i].value, expectedHeaders[i].value);
         }
       }
 
-      headersTestFun() {
+      void Function(StreamMessage) headersTestFun() {
         return expectAsync1((StreamMessage msg) {
           expect(msg is HeadersStreamMessage, isTrue);
           testHeaders((msg as HeadersStreamMessage).headers);
         });
       }
 
-      Completer serverReceivedAllBytes = Completer();
+      var serverReceivedAllBytes = Completer();
 
       Future<String> readData(StreamIterator<StreamMessage> iterator) async {
         var all = <int>[];
@@ -63,14 +64,13 @@ main() {
           pushStream.sendHeaders(expectedHeaders);
           await sendData(pushStream, 'pushing "hello world" :)');
 
-          sStream.incomingMessages.drain();
+          unawaited(sStream.incomingMessages.drain());
           sStream.sendHeaders(expectedHeaders, endStream: true);
 
           expect(await serverReceivedAllBytes.future, completes);
         }));
 
-        ClientTransportStream cStream =
-            client.makeRequest(expectedHeaders, endStream: true);
+        var cStream = client.makeRequest(expectedHeaders, endStream: true);
         cStream.incomingMessages
             .listen(headersTestFun(), onDone: expectAsync0(() {}));
         cStream.peerPushes
@@ -78,11 +78,11 @@ main() {
           testHeaders(push.requestHeaders);
 
           var iterator = StreamIterator(push.stream.incomingMessages);
-          bool hasNext = await iterator.moveNext();
+          var hasNext = await iterator.moveNext();
           expect(hasNext, isTrue);
           testHeaders((iterator.current as HeadersStreamMessage).headers);
 
-          String msg = await readData(iterator);
+          var msg = await readData(iterator);
           expect(msg, 'pushing "hello world" :)');
         }));
       }, settings: ClientSettings(allowServerPushes: true));

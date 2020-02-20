@@ -9,16 +9,16 @@ import 'package:http2/transport.dart';
 
 import 'helper.dart';
 
-main() {
+void main() {
   group('streams', () {
     group('flowcontrol', () {
-      const int numOfOneKB = 1000;
+      const numOfOneKB = 1000;
 
       var expectedHeaders = [Header.ascii('key', 'value')];
       var allBytes = List.generate(numOfOneKB * 1024, (i) => i % 256);
       allBytes.addAll(List.generate(42, (i) => 42));
 
-      headersTestFun(String type) {
+      void Function(StreamMessage) headersTestFun(String type) {
         return expectAsync1((StreamMessage msg) {
           expect(msg is HeadersStreamMessage, isTrue);
           expect((msg as HeadersStreamMessage).headers.first.name,
@@ -28,11 +28,11 @@ main() {
         });
       }
 
-      Completer serverReceivedAllBytes = Completer();
+      var serverReceivedAllBytes = Completer();
 
-      messageTestFun(String type) {
-        bool expectHeader = true;
-        int numBytesReceived = 0;
+      void Function(StreamMessage) messageTestFun(String type) {
+        var expectHeader = true;
+        var numBytesReceived = 0;
         return (StreamMessage msg) {
           if (expectHeader) {
             expectHeader = false;
@@ -60,10 +60,10 @@ main() {
         };
       }
 
-      sendData(TransportStream cStream) {
-        for (int i = 0; i < (allBytes.length + 1023) ~/ 1024; i++) {
-          int end = 1024 * (i + 1);
-          bool isLast = end > allBytes.length;
+      void sendData(TransportStream cStream) {
+        for (var i = 0; i < (allBytes.length + 1023) ~/ 1024; i++) {
+          var end = 1024 * (i + 1);
+          var isLast = end > allBytes.length;
           if (isLast) {
             end = allBytes.length;
           }

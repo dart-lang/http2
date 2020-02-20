@@ -9,7 +9,7 @@ import 'package:http2/src/frames/frame_defragmenter.dart';
 
 import '../error_matchers.dart';
 
-main() {
+void main() {
   group('frames', () {
     group('frame-defragmenter', () {
       UnknownFrame unknownFrame() {
@@ -18,7 +18,7 @@ main() {
 
       HeadersFrame headersFrame(List<int> data,
           {bool fragmented = false, int streamId = 1}) {
-        int flags = fragmented ? 0 : HeadersFrame.FLAG_END_HEADERS;
+        var flags = fragmented ? 0 : HeadersFrame.FLAG_END_HEADERS;
         var header =
             FrameHeader(data.length, FrameType.HEADERS, flags, streamId);
         return HeadersFrame(header, 0, false, null, null, data);
@@ -26,7 +26,7 @@ main() {
 
       PushPromiseFrame pushPromiseFrame(List<int> data,
           {bool fragmented = false, int streamId = 1}) {
-        int flags = fragmented ? 0 : HeadersFrame.FLAG_END_HEADERS;
+        var flags = fragmented ? 0 : HeadersFrame.FLAG_END_HEADERS;
         var header =
             FrameHeader(data.length, FrameType.PUSH_PROMISE, flags, streamId);
         return PushPromiseFrame(header, 0, 44, data);
@@ -34,7 +34,7 @@ main() {
 
       ContinuationFrame continuationFrame(List<int> data,
           {bool fragmented = false, int streamId = 1}) {
-        int flags = fragmented ? 0 : ContinuationFrame.FLAG_END_HEADERS;
+        var flags = fragmented ? 0 : ContinuationFrame.FLAG_END_HEADERS;
         var header =
             FrameHeader(data.length, FrameType.CONTINUATION, flags, streamId);
         return ContinuationFrame(header, data);

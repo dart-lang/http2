@@ -20,7 +20,7 @@ import 'package:http2/src/streams/stream_handler.dart';
 
 import '../test/transport_test.dart';
 
-main() {
+void main() {
   group('transport-test', () {
     transportTest('client-runs-out-of-stream-ids',
         (ClientTransportConnection client,
@@ -37,7 +37,7 @@ main() {
         var headers = [Header.ascii('a', 'b')];
 
         const kMaxStreamId = StreamHandler.MAX_STREAM_ID;
-        for (int i = 1; i <= kMaxStreamId; i += 2) {
+        for (var i = 1; i <= kMaxStreamId; i += 2) {
           var stream = client.makeRequest(headers, endStream: true);
           var messages = await stream.incomingMessages.toList();
           expect(messages, hasLength(1));

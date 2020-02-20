@@ -4,7 +4,7 @@ import 'dart:io';
 
 import 'package:http2/transport.dart';
 
-main(List<String> args) async {
+void main(List<String> args) async {
   if (args == null || args.length != 1) {
     print('Usage: dart display_headers.dart <HTTPS_URI>');
     exit(1);
@@ -48,7 +48,7 @@ main(List<String> args) async {
 }
 
 Future<Socket> connect(Uri uri) async {
-  bool useSSL = uri.scheme == 'https';
+  var useSSL = uri.scheme == 'https';
   if (useSSL) {
     var secureSocket = await SecureSocket.connect(uri.host, uri.port,
         supportedProtocols: ['h2']);

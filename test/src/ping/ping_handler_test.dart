@@ -2,24 +2,23 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 import 'package:http2/src/frames/frames.dart';
 import 'package:http2/src/ping/ping_handler.dart';
+import 'package:pedantic/pedantic.dart';
 
 import '../error_matchers.dart';
 
-main() {
+void main() {
   group('ping-handler', () {
     test('successful-ping', () async {
       dynamic writer = FrameWriterMock();
       var pingHandler = PingHandler(writer);
 
-      Future p1 = pingHandler.ping();
-      Future p2 = pingHandler.ping();
+      var p1 = pingHandler.ping();
+      var p2 = pingHandler.ping();
 
       verifyInOrder([
         writer.writePingFrame(1),
@@ -56,7 +55,7 @@ main() {
       dynamic writer = FrameWriterMock();
       var pingHandler = PingHandler(writer);
 
-      Future future = pingHandler.ping();
+      var future = pingHandler.ping();
       verify(writer.writePingFrame(1)).called(1);
 
       var header = FrameHeader(8, FrameType.PING, PingFrame.FLAG_ACK, 0);
@@ -65,9 +64,9 @@ main() {
 
       // Ensure outstanding pings will be completed with an error once we call
       // `pingHandler.terminate()`.
-      future.catchError(expectAsync2((error, _) {
+      unawaited(future.catchError(expectAsync2((error, _) {
         expect(error, 'hello world');
-      }));
+      })));
       pingHandler.terminate('hello world');
       verifyNoMoreInteractions(writer);
     });

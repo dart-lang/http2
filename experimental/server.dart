@@ -8,13 +8,14 @@ import 'dart:io';
 
 import 'package:http2/src/testing/debug.dart' hide print;
 import 'package:http2/transport.dart';
+import 'package:pedantic/pedantic.dart';
 
 const bool DEBUGGING = false;
 
 const String HOSTNAME = 'localhost';
 const int PORT = 7777;
 
-main() async {
+void main() async {
   String localFile(String path) => Platform.script.resolve(path).toFilePath();
 
   var context = SecurityContext()
@@ -33,7 +34,7 @@ main() async {
   });
 }
 
-handleClient(SecureSocket socket) {
+void handleClient(SecureSocket socket) {
   dumpInfo('main', 'Got new https client');
 
   var connection;
@@ -56,11 +57,11 @@ handleClient(SecureSocket socket) {
           if (path == null) throw Exception('no path given');
 
           if (path == '/') {
-            sendHtml(stream);
+            unawaited(sendHtml(stream));
           } else if (['/iframe', '/iframe2'].contains(path)) {
-            sendIFrameHtml(stream, path);
+            unawaited(sendIFrameHtml(stream, path));
           } else {
-            send404(stream, path);
+            unawaited(send404(stream, path));
           }
         }
       } else if (msg is DataStreamMessage) {
@@ -71,15 +72,15 @@ handleClient(SecureSocket socket) {
 }
 
 void dumpHeaders(String prefix, List<Header> headers) {
-  for (int i = 0; i < headers.length; i++) {
-    String key = ascii.decode(headers[i].name);
-    String value = ascii.decode(headers[i].value);
+  for (var i = 0; i < headers.length; i++) {
+    var key = ascii.decode(headers[i].name);
+    var value = ascii.decode(headers[i].value);
     print('[$prefix] $key: $value');
   }
 }
 
 String pathFromHeaders(List<Header> headers) {
-  for (int i = 0; i < headers.length; i++) {
+  for (var i = 0; i < headers.length; i++) {
     if (ascii.decode(headers[i].name) == ':path') {
       return ascii.decode(headers[i].value);
     }
@@ -96,9 +97,9 @@ void dumpInfo(String prefix, String msg) {
 }
 
 Future sendHtml(ServerTransportStream stream) async {
-  push(stream, '/iframe', sendIFrameHtml);
-  push(stream, '/iframe2', sendIFrameHtml);
-  push(stream, '/favicon.ico', send404);
+  unawaited(push(stream, '/iframe', sendIFrameHtml));
+  unawaited(push(stream, '/iframe2', sendIFrameHtml));
+  unawaited(push(stream, '/favicon.ico', send404));
 
   stream.sendHeaders([
     Header.ascii(':status', '200'),

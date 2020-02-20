@@ -2,12 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:test/test.dart';
 import 'package:http2/transport.dart';
+import 'package:pedantic/pedantic.dart';
+import 'package:test/test.dart';
 
 import 'helper.dart';
 
-main() {
+void main() {
   group('streams', () {
     streamTest('single-header-request--empty-response',
         (ClientTransportConnection client,
@@ -64,7 +65,7 @@ main() {
 
       server.incomingStreams
           .listen(expectAsync1((TransportStream sStream) async {
-        bool isFirst = true;
+        var isFirst = true;
         var receivedChunks = [];
         sStream.incomingMessages.listen(
             expectAsync1((StreamMessage msg) {
@@ -83,12 +84,12 @@ main() {
             }, count: 1 + chunks.length), onDone: expectAsync0(() {
           expect(receivedChunks, chunks);
         }));
-        sStream.outgoingMessages.close();
+        unawaited(sStream.outgoingMessages.close());
       }));
 
       TransportStream cStream = client.makeRequest(expectedHeaders);
       chunks.forEach(cStream.sendData);
-      cStream.outgoingMessages.close();
+      unawaited(cStream.outgoingMessages.close());
       expectEmptyStream(cStream.incomingMessages);
     });
 
@@ -170,9 +171,9 @@ main() {
       }));
 
       TransportStream cStream = client.makeRequest(expectedHeaders);
-      cStream.outgoingMessages.close();
+      unawaited(cStream.outgoingMessages.close());
 
-      int i = 0;
+      var i = 0;
       cStream.incomingMessages.listen(expectAsync1((StreamMessage msg) {
         expect(msg is DataStreamMessage, isTrue);
         expect((msg as DataStreamMessage).bytes, chunks[i++]);
@@ -187,7 +188,7 @@ main() {
     var chunk = [1];
 
     server.incomingStreams.listen(expectAsync1((TransportStream sStream) async {
-      bool isFirst = true;
+      var isFirst = true;
       var receivedChunk;
       sStream.incomingMessages.listen(
           expectAsync1((StreamMessage msg) {
@@ -216,7 +217,7 @@ main() {
     TransportStream cStream = client.makeRequest(expectedHeaders);
     cStream.sendData(chunk, endStream: true);
 
-    bool isFirst = true;
+    var isFirst = true;
     cStream.incomingMessages.listen(expectAsync1((StreamMessage msg) {
       if (isFirst) {
         expect(msg, const TypeMatcher<DataStreamMessage>());

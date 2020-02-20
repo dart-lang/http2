@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
@@ -13,7 +11,7 @@ import 'package:http2/src/settings/settings.dart';
 
 import '../error_matchers.dart';
 
-main() {
+void main() {
   group('settings-handler', () {
     var pushSettings = [Setting(Setting.SETTINGS_ENABLE_PUSH, 0)];
     var invalidPushSettings = [Setting(Setting.SETTINGS_ENABLE_PUSH, 2)];
@@ -25,7 +23,7 @@ main() {
           HPackEncoder(), writer, ActiveSettings(), ActiveSettings());
 
       // Start changing settings.
-      Future changed = sh.changeSettings(pushSettings);
+      var changed = sh.changeSettings(pushSettings);
       verify(writer.writeSettingsFrame(pushSettings)).called(1);
       verifyNoMoreInteractions(writer);
 

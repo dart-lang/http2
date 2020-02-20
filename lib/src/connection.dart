@@ -60,7 +60,7 @@ class ConnectionState {
 
   @override
   String toString() {
-    String message = '';
+    var message = '';
 
     void add(bool condition, String flag) {
       if (condition) {

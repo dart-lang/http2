@@ -11,8 +11,8 @@ import 'package:test/test.dart';
 import 'package:http2/transport.dart';
 import 'package:http2/multiprotocol_server.dart';
 
-main() {
-  SecurityContext context = SecurityContext()
+void main() {
+  var context = SecurityContext()
     ..useCertificateChain('test/certificates/server_chain.pem')
     ..usePrivateKey('test/certificates/server_key.pem', password: 'dartdart');
 
@@ -21,7 +21,7 @@ main() {
       const Count = 2;
 
       var server = await MultiProtocolHttpServer.bind('localhost', 0, context);
-      int requestNr = 0;
+      var requestNr = 0;
       server.startServing(
           expectAsync1((HttpRequest request) async {
             await handleHttp11Request(request, requestNr++);
@@ -33,7 +33,7 @@ main() {
 
       var client = HttpClient();
       client.badCertificateCallback = (_, __, ___) => true;
-      for (int i = 0; i < Count; i++) {
+      for (var i = 0; i < Count; i++) {
         await makeHttp11Request(server, client, i);
       }
     });
@@ -42,7 +42,7 @@ main() {
       const Count = 2;
 
       var server = await MultiProtocolHttpServer.bind('localhost', 0, context);
-      int requestNr = 0;
+      var requestNr = 0;
       server.startServing(
           expectAsync1((HttpRequest request) {}, count: 0),
           expectAsync1((ServerTransportStream stream) async {
@@ -56,7 +56,7 @@ main() {
           onBadCertificate: (_) => true,
           supportedProtocols: ['http/1.1', 'h2']);
       var connection = ClientTransportConnection.viaSocket(socket);
-      for (int i = 0; i < Count; i++) {
+      for (var i = 0; i < Count; i++) {
         await makeHttp2Request(server, connection, i);
       }
       await connection.finish();

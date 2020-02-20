@@ -8,13 +8,13 @@ import 'package:test/test.dart';
 import 'package:http2/src/hpack/huffman.dart';
 import 'package:http2/src/hpack/huffman_table.dart';
 
-main() {
+void main() {
   group('hpack', () {
     group('huffman', () {
       final decode = http2HuffmanCodec.decode;
       final encode = http2HuffmanCodec.encode;
 
-      Map<String, List<int>> hpackSpecTestCases = {
+      var hpackSpecTestCases = {
         'www.example.com': [
           0xf1,
           0xe3,

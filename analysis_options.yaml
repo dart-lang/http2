@@ -6,6 +6,7 @@ analyzer:
     dead_code: error
 linter:
   rules:
+    - always_declare_return_types
     - annotate_overrides
     - avoid_empty_else
     - avoid_init_to_null
@@ -23,6 +24,7 @@ linter:
     - library_names
     - library_prefixes
     - non_constant_identifier_names
+    - omit_local_variable_types
     - only_throw_errors
     - prefer_equal_for_default_values
     - prefer_final_fields
@@ -33,6 +35,7 @@ linter:
     - test_types_in_equals
     - throw_in_finally
     - type_init_formals
+    - unawaited_futures
     - unnecessary_const
     - unnecessary_new
     - unrelated_type_equality_checks

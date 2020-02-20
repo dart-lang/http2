@@ -12,7 +12,7 @@ import 'package:http2/src/frames/frames.dart';
 import 'package:http2/src/hpack/hpack.dart';
 import 'package:http2/src/settings/settings.dart';
 
-main() {
+void main() {
   group('server-tests', () {
     group('normal', () {
       serverTest('gracefull-shutdown-for-unused-connection',
@@ -217,13 +217,13 @@ class ClientErrorStreams {
   Stream<List<int>> get readB => writeB.stream;
 
   StreamIterator<Frame> get clientConnectionFrameReader {
-    ActiveSettings localSettings = ActiveSettings();
+    var localSettings = ActiveSettings();
     return StreamIterator(FrameReader(readA, localSettings).startDecoding());
   }
 
   FrameWriter get clientConnectionFrameWriter {
     var encoder = HPackEncoder();
-    ActiveSettings peerSettings = ActiveSettings();
+    var peerSettings = ActiveSettings();
     writeB.add(CONNECTION_PREFACE);
     return FrameWriter(encoder, writeB, peerSettings);
   }

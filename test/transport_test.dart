@@ -5,13 +5,14 @@
 import 'dart:async';
 import 'dart:typed_data';
 
-import 'package:test/test.dart';
-import 'package:http2/transport.dart';
 import 'package:http2/src/flowcontrol/window.dart';
+import 'package:http2/transport.dart';
+import 'package:pedantic/pedantic.dart';
+import 'package:test/test.dart';
 
 import 'src/hpack/hpack_test.dart' show isHeader;
 
-main() {
+void main() {
   group('transport-test', () {
     transportTest('ping',
         (TransportConnection client, TransportConnection server) async {
@@ -29,12 +30,12 @@ main() {
 
       // NOTE: Now the connection is dead and client/server should complete
       // with [TransportException]s when doing work (e.g. ping).
-      client.ping().catchError(expectAsync2((e, s) {
+      unawaited(client.ping().catchError(expectAsync2((e, s) {
         expect(e is TransportException, isTrue);
-      }));
-      server.ping().catchError(expectAsync2((e, s) {
+      })));
+      unawaited(server.ping().catchError(expectAsync2((e, s) {
         expect(e is TransportException, isTrue);
-      }));
+      })));
     });
 
     transportTest('terminated-server-ping',
@@ -47,15 +48,15 @@ main() {
 
       // NOTE: Now the connection is dead and the client/server should complete
       // with [TransportException]s when doing work (e.g. ping).
-      client.ping().catchError(expectAsync2((e, s) {
+      unawaited(client.ping().catchError(expectAsync2((e, s) {
         expect(e is TransportException, isTrue);
-      }));
-      server.ping().catchError(expectAsync2((e, s) {
+      })));
+      unawaited(server.ping().catchError(expectAsync2((e, s) {
         expect(e is TransportException, isTrue);
-      }));
+      })));
     });
 
-    const int concurrentStreamLimit = 5;
+    const concurrentStreamLimit = 5;
     transportTest('exhaust-concurrent-stream-limit',
         (ClientTransportConnection client,
             ServerTransportConnection server) async {
@@ -69,7 +70,7 @@ main() {
         await Future.value();
 
         final streams = <ClientTransportStream>[];
-        for (int i = 0; i < concurrentStreamLimit; ++i) {
+        for (var i = 0; i < concurrentStreamLimit; ++i) {
           expect(client.isOpen, true);
           streams.add(client.makeRequest([Header.ascii('a', 'b')]));
         }
@@ -116,17 +117,17 @@ main() {
     });
 
     // By default, the stream concurrency level is set to this limit.
-    const int kDefaultStreamLimit = 100;
+    const kDefaultStreamLimit = 100;
     transportTest('enabled-push-100', (ClientTransportConnection client,
             ServerTransportConnection server) async {
       // To ensure the limit is kept up-to-date with closing/opening streams, we
       // retry this.
-      const int kRepetitions = 20;
+      const kRepetitions = 20;
 
       Future serverFun() async {
         await for (ServerTransportStream stream in server.incomingStreams) {
           var pushes = [];
-          for (int i = 0; i < kDefaultStreamLimit; i++) {
+          for (var i = 0; i < kDefaultStreamLimit; i++) {
             expect(stream.canPush, true);
             pushes.add(stream.push([Header.ascii('a', 'b')]));
           }
@@ -151,12 +152,12 @@ main() {
       }
 
       Future clientFun() async {
-        for (int i = 0; i < kRepetitions; i++) {
+        for (var i = 0; i < kRepetitions; i++) {
           var stream =
               client.makeRequest([Header.ascii('a', 'b')], endStream: true);
 
           Future<int> expectPeerPushes() async {
-            int numberOfPushes = 0;
+            var numberOfPushes = 0;
             await for (TransportStreamPush pushedStream in stream.peerPushes) {
               numberOfPushes++;
               var messages =
@@ -334,8 +335,8 @@ main() {
     transportTest('idle-handler', (ClientTransportConnection client,
         ServerTransportConnection server) async {
       Future serverFun() async {
-        int activeCount = 0;
-        int idleCount = 0;
+        var activeCount = 0;
+        var idleCount = 0;
         server.onActiveStateChanged = expectAsync1((active) {
           if (active) {
             activeCount++;
@@ -345,9 +346,9 @@ main() {
         }, count: 6);
         await for (final stream in server.incomingStreams) {
           stream.sendHeaders([]);
-          stream.incomingMessages
+          unawaited(stream.incomingMessages
               .toList()
-              .then((_) => stream.outgoingMessages.close());
+              .then((_) => stream.outgoingMessages.close()));
         }
         await server.finish();
         expect(activeCount, 3);
@@ -355,8 +356,8 @@ main() {
       }
 
       Future clientFun() async {
-        int activeCount = 0;
-        int idleCount = 0;
+        var activeCount = 0;
+        var idleCount = 0;
         client.onActiveStateChanged = expectAsync1((active) {
           if (active) {
             activeCount++;
@@ -394,8 +395,8 @@ main() {
     });
 
     group('flow-control', () {
-      const int kChunkSize = 1024;
-      const int kNumberOfMessages = 1000;
+      const kChunkSize = 1024;
+      const kNumberOfMessages = 1000;
       final headers = [Header.ascii('a', 'b')];
 
       Future testWindowSize(
@@ -405,20 +406,20 @@ main() {
         expect(expectedStreamFlowcontrolWindow,
             lessThan(kChunkSize * kNumberOfMessages));
 
-        int serverSentBytes = 0;
-        Completer flowcontrolWindowFull = Completer();
+        var serverSentBytes = 0;
+        var flowcontrolWindowFull = Completer();
 
         Future serverFun() async {
           await for (ServerTransportStream stream in server.incomingStreams) {
             stream.sendHeaders([Header.ascii('x', 'y')]);
 
-            int messageNr = 0;
+            var messageNr = 0;
             StreamController<StreamMessage> controller;
-            addData() {
+            void addData() {
               if (!controller.isPaused) {
                 if (messageNr < kNumberOfMessages) {
                   var messageBytes = Uint8List(kChunkSize);
-                  for (int j = 0; j < messageBytes.length; j++) {
+                  for (var j = 0; j < messageBytes.length; j++) {
                     messageBytes[j] = (messageNr + j) % 256;
                   }
                   controller.add(DataStreamMessage(messageBytes));
@@ -461,8 +462,8 @@ main() {
         Future clientFun() async {
           var stream = client.makeRequest(headers, endStream: true);
 
-          bool gotHeadersFrame = false;
-          int byteNr = 0;
+          var gotHeadersFrame = false;
+          var byteNr = 0;
 
           var sub = stream.incomingMessages.listen((message) {
             if (!gotHeadersFrame) {

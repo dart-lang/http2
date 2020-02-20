@@ -37,13 +37,13 @@ class HuffmanDecoder {
   List<int> decode(List<int> bytes) {
     var buffer = BytesBuilder();
 
-    int currentByteOffset = 0;
-    HuffmanTreeNode node = _root;
-    int currentDepth = 0;
+    var currentByteOffset = 0;
+    var node = _root;
+    var currentDepth = 0;
     while (currentByteOffset < bytes.length) {
       var byte = bytes[currentByteOffset];
-      for (int currentBit = 7; currentBit >= 0; currentBit--) {
-        bool right = (byte >> currentBit) & 1 == 1;
+      for (var currentBit = 7; currentBit >= 0; currentBit--) {
+        var right = (byte >> currentBit) & 1 == 1;
         if (right) {
           node = node.right;
         } else {
@@ -91,11 +91,11 @@ class HuffmanEncoder {
   List<int> encode(List<int> bytes) {
     var buffer = BytesBuilder();
 
-    int currentByte = 0;
-    int currentBitOffset = 7;
+    var currentByte = 0;
+    var currentBitOffset = 7;
 
-    writeValue(int value, int numBits) {
-      int i = numBits - 1;
+    void writeValue(int value, int numBits) {
+      var i = numBits - 1;
       while (i >= 0) {
         if (currentBitOffset == 7 && i >= 7) {
           assert(currentByte == 0);
@@ -118,7 +118,7 @@ class HuffmanEncoder {
       }
     }
 
-    for (int i = 0; i < bytes.length; i++) {
+    for (var i = 0; i < bytes.length; i++) {
       var byte = bytes[i];
       var value = _codewords[byte];
       writeValue(value.encodedBytes, value.numBits);
@@ -152,14 +152,14 @@ class HuffmanTreeNode {
 
 /// Generates a huffman decoding tree.
 HuffmanTreeNode generateHuffmanTree(List<EncodedHuffmanValue> valueEncodings) {
-  HuffmanTreeNode root = HuffmanTreeNode();
+  var root = HuffmanTreeNode();
 
-  for (int byteOffset = 0; byteOffset < valueEncodings.length; byteOffset++) {
+  for (var byteOffset = 0; byteOffset < valueEncodings.length; byteOffset++) {
     var entry = valueEncodings[byteOffset];
 
-    HuffmanTreeNode current = root;
-    for (int bitNr = 0; bitNr < entry.numBits; bitNr++) {
-      bool right =
+    var current = root;
+    for (var bitNr = 0; bitNr < entry.numBits; bitNr++) {
+      var right =
           ((entry.encodedBytes >> (entry.numBits - bitNr - 1)) & 1) == 1;
 
       if (right) {

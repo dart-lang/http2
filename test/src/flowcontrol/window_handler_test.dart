@@ -11,7 +11,7 @@ import 'package:http2/src/frames/frames.dart';
 
 import '../error_matchers.dart';
 
-main() {
+void main() {
   group('flowcontrol', () {
     void testAbstractOutgoingWindowHandler(
         AbstractOutgoingWindowHandler handler, Window window, int initialSize) {
@@ -59,7 +59,7 @@ main() {
 
     test('outgoing-connection-window-handler', () {
       var window = Window();
-      int initialSize = window.size;
+      var initialSize = window.size;
       var handler = OutgoingConnectionWindowHandler(window);
 
       testAbstractOutgoingWindowHandler(handler, window, initialSize);
@@ -67,7 +67,7 @@ main() {
 
     test('outgoing-stream-window-handler', () {
       var window = Window();
-      int initialSize = window.size;
+      var initialSize = window.size;
       var handler = OutgoingStreamWindowHandler(window);
 
       testAbstractOutgoingWindowHandler(handler, window, initialSize);
@@ -104,7 +104,7 @@ main() {
 
       dynamic fw = FrameWriterMock();
       var window = Window();
-      int initialSize = window.size;
+      var initialSize = window.size;
       var handler = IncomingWindowHandler.stream(fw, window, STREAM_ID);
 
       expect(handler.localWindowSize, initialSize);
