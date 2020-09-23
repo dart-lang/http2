@@ -69,15 +69,14 @@ void main() {
               FrameWriter serverWriter,
               StreamIterator<Frame> serverReader,
               Future<Frame> Function() nextFrame) async {
-        var settingsDone = Completer();
+        final settingsDone = Completer();
 
         Future serverFun() async {
           serverWriter.writeSettingsFrame([]);
+          settingsDone.complete();
           expect(await nextFrame() is SettingsFrame, true);
           serverWriter.writeSettingsAckFrame();
           expect(await nextFrame() is SettingsFrame, true);
-
-          settingsDone.complete();
 
           // Make sure we get the graceful shutdown message.
           expect(
@@ -91,7 +90,8 @@ void main() {
 
         Future clientFun() async {
           await settingsDone.future;
-          await client.onConnectionOperational; // Should complete
+          await client.onInitialPeerSettingsReceived
+              .timeout(Duration(milliseconds: 20)); // Should complete
 
           expect(client.isOpen, true);
 
@@ -111,7 +111,7 @@ void main() {
               FrameWriter serverWriter,
               StreamIterator<Frame> serverReader,
               Future<Frame> Function() nextFrame) async {
-        var goawayReceived = Completer();
+        final goawayReceived = Completer();
         Future serverFun() async {
           serverWriter.writePingFrame(42);
           expect(await nextFrame() is SettingsFrame, true);
@@ -123,7 +123,9 @@ void main() {
         Future clientFun() async {
           expect(client.isOpen, true);
 
-          expect(client.onConnectionOperational.timeout(Duration(seconds: 1)),
+          expect(
+              client.onInitialPeerSettingsReceived
+                  .timeout(Duration(seconds: 1)),
               throwsA(isA<TimeoutException>()));
 
           // We wait until the server received the error (it's actually later
