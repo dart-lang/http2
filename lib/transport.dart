@@ -10,6 +10,8 @@ import 'src/hpack/hpack.dart' show Header;
 
 export 'src/hpack/hpack.dart' show Header;
 
+typedef OperationalStateHandler = void Function();
+
 typedef ActiveStateHandler = void Function(bool isActive);
 
 /// Settings for a [TransportConnection].
@@ -59,6 +61,10 @@ abstract class TransportConnection {
   /// `false` when the number of active streams becomes 0 (the connection goes
   /// from active to idle).
   set onActiveStateChanged(ActiveStateHandler callback);
+
+  /// Future which completes when connection becomes operational after
+  /// the first SETTINGS frame is received from the other side.
+  Future<void> get onConnectionOperational;
 
   /// Finish this connection.
   ///
