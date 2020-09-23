@@ -10,8 +10,6 @@ import 'src/hpack/hpack.dart' show Header;
 
 export 'src/hpack/hpack.dart' show Header;
 
-typedef OperationalStateHandler = void Function();
-
 typedef ActiveStateHandler = void Function(bool isActive);
 
 /// Settings for a [TransportConnection].
