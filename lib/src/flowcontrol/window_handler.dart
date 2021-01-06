@@ -5,7 +5,6 @@
 import '../async_utils/async_utils.dart';
 import '../frames/frames.dart';
 import '../sync_errors.dart';
-
 import 'window.dart';
 
 abstract class AbstractOutgoingWindowHandler {
@@ -151,12 +150,12 @@ class IncomingWindowHandler {
   // TODO/FIXME: If we pause and don't want to get more data, we have to
   //  - either stop sending window update frames
   //  - or decreasing the window size
-  void dataProcessed(int numberOfBytes) {
-    _localWindow.modify(numberOfBytes);
+  void dataProcessed(int? numberOfBytes) {
+    _localWindow.modify(numberOfBytes ?? 0);
 
     // TODO: This can be optimized by delaying the window update to
     // send one update with a bigger difference than multiple small update
     // frames.
-    _frameWriter.writeWindowUpdate(numberOfBytes, streamId: _streamId);
+    _frameWriter.writeWindowUpdate(numberOfBytes ?? 0, streamId: _streamId);
   }
 }

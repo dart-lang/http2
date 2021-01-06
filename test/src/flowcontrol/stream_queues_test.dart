@@ -148,5 +148,5 @@ class MockOutgoingStreamWindowHandler extends Mock
   @override
   final BufferIndicator positiveWindow = BufferIndicator();
   @override
-  int peerWindowSize;
+  int peerWindowSize = 0;
 }

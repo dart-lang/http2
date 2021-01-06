@@ -204,7 +204,7 @@ void main() {
           expect(client.isOpen, true);
           var stream = client.makeRequest([Header.ascii('a', 'b')]);
 
-          String error;
+          String? error;
           try {
             await stream.incomingMessages.toList();
           } catch (e) {

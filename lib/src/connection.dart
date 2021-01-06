@@ -95,7 +95,7 @@ abstract class Connection {
   final bool isClientConnection;
 
   /// Active state handler for this connection.
-  ActiveStateHandler onActiveStateChanged;
+  ActiveStateHandler? onActiveStateChanged;
 
   final Completer<void> _onInitialPeerSettingsReceived = Completer<void>();
 
@@ -117,32 +117,32 @@ abstract class Connection {
   final FrameDefragmenter _defragmenter = FrameDefragmenter();
 
   /// The outgoing frames of this connection;
-  FrameWriter _frameWriter;
+  late FrameWriter _frameWriter;
 
   /// A subscription of incoming [Frame]s.
-  StreamSubscription<Frame> _frameReaderSubscription;
+  late StreamSubscription<Frame> _frameReaderSubscription;
 
   /// The incoming connection-level message queue.
-  ConnectionMessageQueueIn _incomingQueue;
+  late ConnectionMessageQueueIn _incomingQueue;
 
   /// The outgoing connection-level message queue.
-  ConnectionMessageQueueOut _outgoingQueue;
+  late ConnectionMessageQueueOut _outgoingQueue;
 
   /// The ping handler used for making pings & handling remote pings.
-  PingHandler _pingHandler;
+  late PingHandler _pingHandler;
 
   /// The settings handler used for changing settings & for handling remote
   /// setting changes.
-  SettingsHandler _settingsHandler;
+  late SettingsHandler _settingsHandler;
 
   /// The set of active streams this connection has.
-  StreamHandler _streams;
+  late StreamHandler _streams;
 
   /// The connection-level flow control window handler for outgoing messages.
-  OutgoingConnectionWindowHandler _connectionWindowHandler;
+  late OutgoingConnectionWindowHandler _connectionWindowHandler;
 
   /// The state of this connection.
-  ConnectionState _state;
+  late ConnectionState _state;
 
   Connection(Stream<List<int>> incoming, StreamSink<List<int>> outgoing,
       Settings settings,
@@ -292,9 +292,7 @@ abstract class Connection {
   }
 
   void _activeStateHandler(bool isActive) {
-    if (onActiveStateChanged != null) {
-      onActiveStateChanged(isActive);
-    }
+    onActiveStateChanged?.call(isActive);
   }
 
   /// Invokes the passed in closure and catches any exceptions.
@@ -333,43 +331,41 @@ abstract class Connection {
     }
 
     // Try to defragment [frame] if it is a Headers/PushPromise frame.
-    frame = _defragmenter.tryDefragmentFrame(frame);
-    if (frame == null) return;
+    var fr = _defragmenter.tryDefragmentFrame(frame);
+    if (fr == null) return;
 
     // Try to decode headers if it's a Headers/PushPromise frame.
     // [This needs to be done even if the frames get ignored, since the entire
     //  connection shares one HPack compression context.]
-    if (frame is HeadersFrame) {
-      frame.decodedHeaders =
-          _hpackContext.decoder.decode(frame.headerBlockFragment);
-    } else if (frame is PushPromiseFrame) {
-      frame.decodedHeaders =
-          _hpackContext.decoder.decode(frame.headerBlockFragment);
+    if (fr is HeadersFrame) {
+      fr.decodedHeaders = _hpackContext.decoder.decode(fr.headerBlockFragment);
+    } else if (fr is PushPromiseFrame) {
+      fr.decodedHeaders = _hpackContext.decoder.decode(fr.headerBlockFragment);
     }
 
     // Handle the frame as either a connection or a stream frame.
-    if (frame.header.streamId == 0) {
-      if (frame is SettingsFrame) {
-        _settingsHandler.handleSettingsFrame(frame);
-      } else if (frame is PingFrame) {
-        _pingHandler.processPingFrame(frame);
-      } else if (frame is WindowUpdateFrame) {
-        _connectionWindowHandler.processWindowUpdate(frame);
-      } else if (frame is GoawayFrame) {
-        _streams.processGoawayFrame(frame);
+    if (fr.header.streamId == 0) {
+      if (fr is SettingsFrame) {
+        _settingsHandler.handleSettingsFrame(fr);
+      } else if (fr is PingFrame) {
+        _pingHandler.processPingFrame(fr);
+      } else if (fr is WindowUpdateFrame) {
+        _connectionWindowHandler.processWindowUpdate(fr);
+      } else if (fr is GoawayFrame) {
+        _streams.processGoawayFrame(fr);
         _finishing(active: false);
-      } else if (frame is UnknownFrame) {
+      } else if (fr is UnknownFrame) {
         // We can safely ignore these.
       } else {
         throw ProtocolException(
-            'Cannot handle frame type ${frame.runtimeType} with stream-id 0.');
+            'Cannot handle frame type ${fr.runtimeType} with stream-id 0.');
       }
     } else {
-      _streams.processStreamFrame(_state, frame);
+      _streams.processStreamFrame(_state, fr);
     }
   }
 
-  void _finishing({bool active = true, String message}) {
+  void _finishing({bool active = true, String? message}) {
     // If this connection is already dead, we return.
     if (_state.isTerminated) return;
 
@@ -407,7 +403,7 @@ abstract class Connection {
   ///
   /// The returned future will never complete with an error.
   Future _terminate(int errorCode,
-      {bool causedByTransportError = false, String message}) {
+      {bool causedByTransportError = false, String? message}) {
     // TODO: When do we complete here?
     if (_state.state != ConnectionState.Terminated) {
       _state.state = ConnectionState.Terminated;

@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:test/test.dart';
 import 'package:http2/src/hpack/hpack.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('hpack', () {
@@ -815,12 +815,12 @@ class _HeaderMatcher extends Matcher {
         _compareLists(item.value, header.value);
   }
 
-  bool _compareLists(List<int> a, List<int> b) {
+  bool _compareLists(List<int>? a, List<int>? b) {
     if (a == null && b == null) return true;
     if (a == null && b != null) return false;
-    if (a.length != b.length) return false;
-    for (var i = 0; i < a.length; i++) {
-      if (a[i] != b[i]) return false;
+    if (a?.length != b?.length) return false;
+    for (var i = 0; i < (a?.length ?? 0); i++) {
+      if (a?[i] != b?[i]) return false;
     }
     return true;
   }

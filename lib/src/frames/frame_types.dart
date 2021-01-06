@@ -70,6 +70,7 @@ class DataFrame extends Frame {
   DataFrame(FrameHeader header, this.padLength, this.bytes) : super(header);
 
   bool get hasEndStreamFlag => _isFlagSet(header.flags, FLAG_END_STREAM);
+
   bool get hasPaddedFlag => _isFlagSet(header.flags, FLAG_PADDED);
 
   @override
@@ -95,8 +96,8 @@ class HeadersFrame extends Frame {
   final int padLength;
 
   final bool exclusiveDependency;
-  final int streamDependency;
-  final int weight;
+  final int? streamDependency;
+  final int? weight;
   final List<int> headerBlockFragment;
 
   HeadersFrame(FrameHeader header, this.padLength, this.exclusiveDependency,
@@ -104,11 +105,14 @@ class HeadersFrame extends Frame {
       : super(header);
 
   /// This will be set from the outside after decoding.
-  List<Header> decodedHeaders;
+  List<Header> decodedHeaders = <Header>[];
 
   bool get hasEndStreamFlag => _isFlagSet(header.flags, FLAG_END_STREAM);
+
   bool get hasEndHeadersFlag => _isFlagSet(header.flags, FLAG_END_HEADERS);
+
   bool get hasPaddedFlag => _isFlagSet(header.flags, FLAG_PADDED);
+
   bool get hasPriorityFlag => _isFlagSet(header.flags, FLAG_PRIORITY);
 
   HeadersFrame addBlockContinuation(ContinuationFrame frame) {
@@ -184,7 +188,7 @@ class Setting {
   static const int SETTINGS_MAX_HEADER_LIST_SIZE = 6;
 
   final int identifier;
-  final int value;
+  final int? value;
 
   Setting(this.identifier, this.value);
 
@@ -223,13 +227,14 @@ class PushPromiseFrame extends Frame {
   final List<int> headerBlockFragment;
 
   /// This will be set from the outside after decoding.
-  List<Header> decodedHeaders;
+  List<Header> decodedHeaders = <Header>[];
 
   PushPromiseFrame(FrameHeader header, this.padLength, this.promisedStreamId,
       this.headerBlockFragment)
       : super(header);
 
   bool get hasEndHeadersFlag => _isFlagSet(header.flags, FLAG_END_HEADERS);
+
   bool get hasPaddedFlag => _isFlagSet(header.flags, FLAG_PADDED);
 
   PushPromiseFrame addBlockContinuation(ContinuationFrame frame) {

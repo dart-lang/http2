@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../sync_errors.dart';
-
 import 'frames.dart';
 
 /// Class used for defragmenting [HeadersFrame]s and [PushPromiseFrame]s.
@@ -11,10 +10,10 @@ import 'frames.dart';
 // (since we're buffering all of them).
 class FrameDefragmenter {
   /// The current incomplete [HeadersFrame] fragment.
-  HeadersFrame _headersFrame;
+  HeadersFrame? _headersFrame;
 
   /// The current incomplete [PushPromiseFrame] fragment.
-  PushPromiseFrame _pushPromiseFrame;
+  PushPromiseFrame? _pushPromiseFrame;
 
   /// Tries to defragment [frame].
   ///
@@ -29,14 +28,14 @@ class FrameDefragmenter {
   /// All other [Frame] types will be returned.
   // TODO: Consider handling continuation frames without preceding
   // headers/push-promise frame here instead of the call site?
-  Frame tryDefragmentFrame(Frame frame) {
+  Frame? tryDefragmentFrame(Frame frame) {
     if (_headersFrame != null) {
       if (frame is ContinuationFrame) {
-        if (_headersFrame.header.streamId != frame.header.streamId) {
+        if (_headersFrame?.header.streamId != frame.header.streamId) {
           throw ProtocolException(
               'Defragmentation: frames have different stream ids.');
         }
-        _headersFrame = _headersFrame.addBlockContinuation(frame);
+        _headersFrame = _headersFrame?.addBlockContinuation(frame);
 
         if (frame.hasEndHeadersFlag) {
           var frame = _headersFrame;
@@ -52,11 +51,11 @@ class FrameDefragmenter {
       }
     } else if (_pushPromiseFrame != null) {
       if (frame is ContinuationFrame) {
-        if (_pushPromiseFrame.header.streamId != frame.header.streamId) {
+        if (_pushPromiseFrame?.header.streamId != frame.header.streamId) {
           throw ProtocolException(
               'Defragmentation: frames have different stream ids.');
         }
-        _pushPromiseFrame = _pushPromiseFrame.addBlockContinuation(frame);
+        _pushPromiseFrame = _pushPromiseFrame?.addBlockContinuation(frame);
 
         if (frame.hasEndHeadersFlag) {
           var frame = _pushPromiseFrame;

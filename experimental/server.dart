@@ -47,7 +47,7 @@ void handleClient(SecureSocket socket) {
   connection.incomingStreams.listen((ServerTransportStream stream) async {
     dumpInfo('main', 'Got new HTTP/2 stream with id: ${stream.id}');
 
-    String path;
+    String? path;
     stream.incomingMessages.listen((StreamMessage msg) async {
       dumpInfo('${stream.id}', 'Got new incoming message');
       if (msg is HeadersStreamMessage) {
@@ -59,9 +59,9 @@ void handleClient(SecureSocket socket) {
           if (path == '/') {
             unawaited(sendHtml(stream));
           } else if (['/iframe', '/iframe2'].contains(path)) {
-            unawaited(sendIFrameHtml(stream, path));
+            unawaited(sendIFrameHtml(stream, path!));
           } else {
-            unawaited(send404(stream, path));
+            unawaited(send404(stream, path!));
           }
         }
       } else if (msg is DataStreamMessage) {

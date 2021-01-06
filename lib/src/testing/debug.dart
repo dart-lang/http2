@@ -122,8 +122,10 @@ Future _pipeAndCopy(Stream<List<int>> from, StreamSink to, StreamSink to2) {
     to.add(data);
     to2.add(data);
   }, onError: (e, StackTrace s) {
-    to.addError(e, s);
-    to2.addError(e, s);
+    if (e is Object) {
+      to.addError(e, s);
+      to2.addError(e, s);
+    }
   }, onDone: () {
     Future.wait([to.close(), to2.close()])
         .then(c.complete)
