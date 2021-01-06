@@ -42,17 +42,17 @@ const List<int> CONNECTION_PREFACE = [
 /// connection preface. If an error occurs while reading the connection
 /// preface, the returned stream will have only an error.
 Stream<List<int>> readConnectionPreface(Stream<List<int>> incoming) {
-  StreamController<List<int>> result;
-  StreamSubscription subscription;
+  StreamController<List<int>>? result;
+  StreamSubscription? subscription;
   var connectionPrefaceRead = false;
-  var prefaceBuffer = <int>[];
+  List<int>? prefaceBuffer = <int>[];
   var terminated = false;
 
-  void terminate(error) {
+  void terminate(Object error) {
     if (!terminated) {
-      result.addError(error);
-      result.close();
-      subscription.cancel();
+      result?.addError(error);
+      result?.close();
+      subscription?.cancel();
     }
     terminated = true;
   }
@@ -72,26 +72,27 @@ Stream<List<int>> readConnectionPreface(Stream<List<int>> incoming) {
   void onData(List<int> data) {
     if (connectionPrefaceRead) {
       // Forward data after reading preface.
-      result.add(data);
+      result?.add(data);
     } else {
-      if (prefaceBuffer.isEmpty && data.length > CONNECTION_PREFACE.length) {
+      final pr = prefaceBuffer;
+      if (pr != null && pr.isEmpty && data.length > CONNECTION_PREFACE.length) {
         if (!compareConnectionPreface(data)) return;
         data = data.sublist(CONNECTION_PREFACE.length);
-      } else if (prefaceBuffer.length < CONNECTION_PREFACE.length) {
-        var remaining = CONNECTION_PREFACE.length - prefaceBuffer.length;
+      } else if (pr != null && pr.length < CONNECTION_PREFACE.length) {
+        var remaining = CONNECTION_PREFACE.length - pr.length;
 
         var end = min(data.length, remaining);
         var part1 = viewOrSublist(data, 0, end);
         var part2 = viewOrSublist(data, end, data.length - end);
-        prefaceBuffer.addAll(part1);
+        prefaceBuffer?.addAll(part1);
 
-        if (prefaceBuffer.length == CONNECTION_PREFACE.length) {
-          if (!compareConnectionPreface(prefaceBuffer)) return;
+        if (pr.length == CONNECTION_PREFACE.length) {
+          if (!compareConnectionPreface(pr)) return;
         }
         data = part2;
       }
       if (data.isNotEmpty) {
-        result.add(data);
+        result?.add(data);
       }
     }
   }
@@ -99,18 +100,20 @@ Stream<List<int>> readConnectionPreface(Stream<List<int>> incoming) {
   result = StreamController(
       onListen: () {
         subscription = incoming.listen(onData,
-            onError: (e, StackTrace s) => result.addError(e, s),
+            onError: (e, StackTrace s) => {
+                  if (e is Object) {result?.addError(e, s)}
+                },
             onDone: () {
               if (prefaceBuffer != null) {
                 terminate('EOS before connection preface could be read.');
               } else {
-                result.close();
+                result?.close();
               }
             });
       },
-      onPause: () => subscription.pause(),
-      onResume: () => subscription.resume(),
-      onCancel: () => subscription.cancel());
+      onPause: () => subscription?.pause(),
+      onResume: () => subscription?.resume(),
+      onCancel: () => subscription?.cancel());
 
   return result.stream;
 }

@@ -9,7 +9,6 @@ import '../../transport.dart';
 import '../async_utils/async_utils.dart';
 import '../byte_utils.dart';
 import '../error_handler.dart';
-
 import 'connection_queues.dart';
 import 'queue_messages.dart';
 import 'window_handler.dart';
@@ -166,10 +165,10 @@ class StreamMessageQueueIn extends Object
   final Queue<Message> _pendingMessages = Queue<Message>();
 
   /// The [StreamController] used for producing the [messages] stream.
-  StreamController<StreamMessage> _incomingMessagesC;
+  late StreamController<StreamMessage> _incomingMessagesC;
 
   /// The [StreamController] used for producing the [serverPushes] stream.
-  StreamController<TransportStreamPush> _serverPushStreamsC;
+  late StreamController<TransportStreamPush> _serverPushStreamsC;
 
   StreamMessageQueueIn(this.windowHandler) {
     // We start by marking it as buffered, since no one is listening yet and
@@ -215,7 +214,7 @@ class StreamMessageQueueIn extends Object
 
   /// A lower layer enqueues a new [Message] which should be delivered to the
   /// app.
-  void enqueueMessage(Message message) {
+  void enqueueMessage(Message? message) {
     ensureNotClosingSync(() {
       if (!wasTerminated) {
         if (message is PushPromiseMessage) {
@@ -231,9 +230,10 @@ class StreamMessageQueueIn extends Object
         if (message is DataMessage) {
           windowHandler.gotData(message.bytes.length);
         }
-        _pendingMessages.add(message);
-        if (message.endStream) startClosing();
-
+        if (message != null) {
+          _pendingMessages.add(message);
+          if (message.endStream) startClosing();
+        }
         _tryDispatch();
         _tryUpdateBufferIndicator();
       }
@@ -241,15 +241,15 @@ class StreamMessageQueueIn extends Object
   }
 
   @override
-  void onTerminated(exception) {
+  void onTerminated(error) {
     _pendingMessages.clear();
     if (!wasClosed) {
-      if (exception != null) {
-        _incomingMessagesC.addError(exception);
+      if (error != null && error is Object) {
+        _incomingMessagesC.addError(error);
       }
       _incomingMessagesC.close();
       _serverPushStreamsC.close();
-      closeWithError(exception);
+      closeWithError(error);
     }
   }
 

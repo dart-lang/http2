@@ -6,7 +6,6 @@ import 'dart:async';
 import 'dart:math';
 
 import '../../transport.dart';
-
 import '../connection.dart';
 import '../error_handler.dart';
 import '../flowcontrol/connection_queues.dart';
@@ -61,17 +60,17 @@ class Http2StreamImpl extends TransportStream
 
   // Error code from RST_STREAM frame, if the stream has been terminated
   // remotely.
-  int _terminatedErrorCode;
+  int? _terminatedErrorCode;
 
   // Termination handler. Invoked if the stream receives an RST_STREAM frame.
-  void Function(int) _onTerminated;
+  void Function(int)? _onTerminated;
 
   final ZoneUnaryCallback<bool, Http2StreamImpl> _canPushFun;
   final ZoneBinaryCallback<ServerTransportStream, Http2StreamImpl, List<Header>>
       _pushStreamFun;
   final ZoneUnaryCallback<dynamic, Http2StreamImpl> _terminateStreamFun;
 
-  StreamSubscription _outgoingCSubscription;
+  StreamSubscription? _outgoingCSubscription;
 
   Http2StreamImpl(
       this.incomingQueue,
@@ -112,15 +111,17 @@ class Http2StreamImpl extends TransportStream
   @override
   set onTerminated(void Function(int) handler) {
     _onTerminated = handler;
-    if (_terminatedErrorCode != null && _onTerminated != null) {
-      _onTerminated(_terminatedErrorCode);
+    final err = _terminatedErrorCode;
+    if (err != null && _onTerminated != null) {
+      _onTerminated?.call(err);
     }
   }
 
   void _handleTerminated(int errorCode) {
     _terminatedErrorCode = errorCode;
-    if (_onTerminated != null) {
-      _onTerminated(_terminatedErrorCode);
+    final err = _terminatedErrorCode;
+    if (err != null) {
+      _onTerminated?.call(err);
     }
   }
 }
@@ -434,8 +435,8 @@ class StreamHandler extends Object with TerminatableMixin, ClosableMixin {
       }
     });
     stream.outgoingQueue.bufferIndicator.bufferEmptyEvents.listen((_) {
-      if (stream._outgoingCSubscription.isPaused) {
-        stream._outgoingCSubscription.resume();
+      if (stream._outgoingCSubscription?.isPaused == true) {
+        stream._outgoingCSubscription?.resume();
       }
     });
   }
@@ -458,8 +459,8 @@ class StreamHandler extends Object with TerminatableMixin, ClosableMixin {
     }
 
     if (stream.outgoingQueue.bufferIndicator.wouldBuffer &&
-        !stream._outgoingCSubscription.isPaused) {
-      stream._outgoingCSubscription.pause();
+        stream._outgoingCSubscription?.isPaused == false) {
+      stream._outgoingCSubscription?.pause();
     }
   }
 
@@ -767,7 +768,7 @@ class StreamHandler extends Object with TerminatableMixin, ClosableMixin {
     }
   }
 
-  void _closeStreamAbnormally(Http2StreamImpl stream, Object exception,
+  void _closeStreamAbnormally(Http2StreamImpl stream, dynamic exception,
       {bool propagateException = false}) {
     incomingQueue.removeStreamMessageQueue(stream.id);
 
@@ -775,7 +776,7 @@ class StreamHandler extends Object with TerminatableMixin, ClosableMixin {
       _changeState(stream, StreamState.Terminated);
     }
     stream.incomingQueue.terminate(propagateException ? exception : null);
-    stream._outgoingCSubscription.cancel();
+    stream._outgoingCSubscription?.cancel();
     stream._outgoingC.close();
 
     // NOTE: we're not adding an error here.

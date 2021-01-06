@@ -41,7 +41,7 @@ class ActiveSettings {
   /// active streams. Servers SHOULD only set a zero value for short durations;
   /// if a server does not wish to accept requests, closing the connection is
   /// more appropriate.
-  int maxConcurrentStreams;
+  int? maxConcurrentStreams;
 
   /// Indicates the sender's initial window size (in octets) for stream level
   /// flow control. The initial value is 2^16-1 (65,535) octets.
@@ -69,7 +69,7 @@ class ActiveSettings {
   ///
   /// For any given request, a lower limit than what is advertised MAY be
   /// enforced. The initial value of this setting is unlimited.
-  int maxHeaderListSize;
+  int? maxHeaderListSize;
 
   ActiveSettings(
       {this.headerTableSize = 4096,
@@ -154,8 +154,11 @@ class SettingsHandler extends Object with TerminatableMixin {
   @override
   void onTerminated(error) {
     _toBeAcknowledgedSettings.clear();
-    _toBeAcknowledgedCompleters
-        .forEach((Completer c) => c.completeError(error));
+    _toBeAcknowledgedCompleters.forEach((Completer c) {
+      if (error is Object) {
+        c.completeError(error);
+      }
+    });
   }
 
   Future changeSettings(List<Setting> changes) {
@@ -186,7 +189,7 @@ class SettingsHandler extends Object with TerminatableMixin {
           break;
 
         case Setting.SETTINGS_HEADER_TABLE_SIZE:
-          base.headerTableSize = setting.value;
+          base.headerTableSize = setting.value ?? 0;
           if (peerSettings) {
             _hpackEncoder.updateMaxSendingHeaderTableSize(base.headerTableSize);
           }
@@ -206,10 +209,10 @@ class SettingsHandler extends Object with TerminatableMixin {
           break;
 
         case Setting.SETTINGS_INITIAL_WINDOW_SIZE:
-          if (setting.value < (1 << 31)) {
-            var difference = setting.value - base.initialWindowSize;
+          if ((setting.value ?? 0) < (1 << 31)) {
+            var difference = (setting.value ?? 0) - base.initialWindowSize;
             _onInitialWindowSizeChangeController.add(difference);
-            base.initialWindowSize = setting.value;
+            base.initialWindowSize = setting.value ?? 0;
           } else {
             throw FlowControlException('Invalid initial window size.');
           }

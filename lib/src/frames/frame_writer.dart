@@ -8,7 +8,7 @@ part of http2.src.frames;
 // TODO: No support for stream priorities.
 class FrameWriter {
   /// The HPack compression context.
-  final HPackEncoder _hpackEncoder;
+  final HPackEncoder? _hpackEncoder;
 
   /// A buffered writer for outgoing bytes.
   final BufferedBytesWriter _outWriter;
@@ -58,22 +58,25 @@ class FrameWriter {
 
   void writeHeadersFrame(int streamId, List<Header> headers,
       {bool endStream = true}) {
-    var fragment = _hpackEncoder.encode(headers);
-    var maxSize =
-        _peerSettings.maxFrameSize - HeadersFrame.MAX_CONSTANT_PAYLOAD;
+    final hpackEncoder = _hpackEncoder;
+    if (hpackEncoder != null) {
+      var fragment = hpackEncoder.encode(headers);
+      var maxSize =
+          _peerSettings.maxFrameSize - HeadersFrame.MAX_CONSTANT_PAYLOAD;
 
-    if (fragment.length < maxSize) {
-      _writeHeadersFrameNoFragment(streamId, fragment, true, endStream);
-    } else {
-      var chunk = fragment.sublist(0, maxSize);
-      fragment = fragment.sublist(maxSize);
-      _writeHeadersFrameNoFragment(streamId, chunk, false, endStream);
-      while (fragment.length > _peerSettings.maxFrameSize) {
-        var chunk = fragment.sublist(0, _peerSettings.maxFrameSize);
-        fragment = fragment.sublist(_peerSettings.maxFrameSize);
-        _writeContinuationFrame(streamId, chunk, false);
+      if (fragment.length < maxSize) {
+        _writeHeadersFrameNoFragment(streamId, fragment, true, endStream);
+      } else {
+        var chunk = fragment.sublist(0, maxSize);
+        fragment = fragment.sublist(maxSize);
+        _writeHeadersFrameNoFragment(streamId, chunk, false, endStream);
+        while (fragment.length > _peerSettings.maxFrameSize) {
+          var chunk = fragment.sublist(0, _peerSettings.maxFrameSize);
+          fragment = fragment.sublist(_peerSettings.maxFrameSize);
+          _writeContinuationFrame(streamId, chunk, false);
+        }
+        _writeContinuationFrame(streamId, fragment, true);
       }
-      _writeContinuationFrame(streamId, fragment, true);
     }
   }
 
@@ -162,7 +165,7 @@ class FrameWriter {
     for (var i = 0; i < settings.length; i++) {
       var setting = settings[i];
       setInt16(buffer, offset + 6 * i, setting.identifier);
-      setInt32(buffer, offset + 6 * i + 2, setting.value);
+      setInt32(buffer, offset + 6 * i + 2, setting.value ?? 0);
     }
 
     _writeData(buffer);
@@ -183,24 +186,27 @@ class FrameWriter {
 
   void writePushPromiseFrame(
       int streamId, int promisedStreamId, List<Header> headers) {
-    var fragment = _hpackEncoder.encode(headers);
-    var maxSize =
-        _peerSettings.maxFrameSize - PushPromiseFrame.MAX_CONSTANT_PAYLOAD;
+    final hpackEncoder = _hpackEncoder;
+    if (hpackEncoder != null) {
+      var fragment = hpackEncoder.encode(headers);
+      var maxSize =
+          _peerSettings.maxFrameSize - PushPromiseFrame.MAX_CONSTANT_PAYLOAD;
 
-    if (fragment.length < maxSize) {
-      _writePushPromiseFrameNoFragmentation(
-          streamId, promisedStreamId, fragment, true);
-    } else {
-      var chunk = fragment.sublist(0, maxSize);
-      fragment = fragment.sublist(maxSize);
-      _writePushPromiseFrameNoFragmentation(
-          streamId, promisedStreamId, chunk, false);
-      while (fragment.length > _peerSettings.maxFrameSize) {
-        var chunk = fragment.sublist(0, _peerSettings.maxFrameSize);
-        fragment = fragment.sublist(_peerSettings.maxFrameSize);
-        _writeContinuationFrame(streamId, chunk, false);
+      if (fragment.length < maxSize) {
+        _writePushPromiseFrameNoFragmentation(
+            streamId, promisedStreamId, fragment, true);
+      } else {
+        var chunk = fragment.sublist(0, maxSize);
+        fragment = fragment.sublist(maxSize);
+        _writePushPromiseFrameNoFragmentation(
+            streamId, promisedStreamId, chunk, false);
+        while (fragment.length > _peerSettings.maxFrameSize) {
+          var chunk = fragment.sublist(0, _peerSettings.maxFrameSize);
+          fragment = fragment.sublist(_peerSettings.maxFrameSize);
+          _writeContinuationFrame(streamId, chunk, false);
+        }
+        _writeContinuationFrame(streamId, chunk, true);
       }
-      _writeContinuationFrame(streamId, chunk, true);
     }
   }
 

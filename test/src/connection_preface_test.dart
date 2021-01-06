@@ -17,8 +17,8 @@ void main() {
 
       for (var size = 1; size <= data.length; size++) {
         var c = StreamController<List<int>>();
-        var resultF =
-            readConnectionPreface(c.stream).fold([], (b, d) => b..addAll(d));
+        var resultF = readConnectionPreface(c.stream)
+            .fold([], (List<dynamic> b, List<int> d) => b..addAll(d));
 
         for (var i = 0; i < (size - 1 + data.length) ~/ size; i++) {
           var from = size * i;
@@ -32,10 +32,10 @@ void main() {
       }
     });
 
-    test('only-part-of-connection-sequence', () async {
+    test('only-part-of-connection-sequence', () {
       var c = StreamController<List<int>>();
-      var resultF =
-          readConnectionPreface(c.stream).fold([], (b, d) => b..addAll(d));
+      var resultF = readConnectionPreface(c.stream)
+          .fold([], (List<dynamic>? b, List<int> d) => b?..addAll(d));
 
       for (var i = 0; i < CONNECTION_PREFACE.length - 1; i++) {
         c.add([CONNECTION_PREFACE[i]]);
@@ -49,8 +49,8 @@ void main() {
 
     test('wrong-connection-sequence', () async {
       var c = StreamController<List<int>>();
-      var resultF =
-          readConnectionPreface(c.stream).fold([], (b, d) => b..addAll(d));
+      var resultF = readConnectionPreface(c.stream)
+          .fold([], (List<dynamic>? b, List<int> d) => b?..addAll(d));
 
       for (var i = 0; i < CONNECTION_PREFACE.length; i++) {
         c.add([0xff]);
@@ -64,8 +64,8 @@ void main() {
 
     test('incoming-socket-error', () async {
       var c = StreamController<List<int>>();
-      var resultF =
-          readConnectionPreface(c.stream).fold([], (b, d) => b..addAll(d));
+      var resultF = readConnectionPreface(c.stream)
+          .fold([], (List<dynamic>? b, List<int> d) => b?..addAll(d));
 
       c.addError('hello world');
       unawaited(c.close());

@@ -11,7 +11,6 @@ import 'dart:convert' show ascii;
 import 'dart:io';
 
 import '../byte_utils.dart';
-
 import 'huffman.dart';
 import 'huffman_table.dart';
 
@@ -55,7 +54,7 @@ class Header {
 
 /// A stateful HPACK decoder.
 class HPackDecoder {
-  int _maxHeaderTableSize;
+  int _maxHeaderTableSize = 0;
 
   final IndexTable _table = IndexTable();
 
@@ -107,7 +106,7 @@ class HPackDecoder {
     Header readHeaderFieldInternal(int index, {bool neverIndexed = false}) {
       List<int> name, value;
       if (index > 0) {
-        name = _table.lookup(index).name;
+        name = _table.lookup(index)?.name ?? [];
         value = readStringLiteral();
       } else {
         name = readStringLiteral();
@@ -130,7 +129,9 @@ class HPackDecoder {
         if (isIndexedField) {
           var index = readInteger(7);
           var field = _table.lookup(index);
-          headers.add(field);
+          if (field != null) {
+            headers.add(field);
+          }
         } else if (isIncrementalIndexing) {
           var field = readHeaderFieldInternal(readInteger(6));
           _table.addHeaderField(field);
@@ -221,7 +222,7 @@ class HPackEncoder {
 }
 
 class IndexTable {
-  static final List<Header> _staticTable = [
+  static final List<Header?> _staticTable = [
     null,
     Header(ascii.encode(':authority'), const []),
     Header(ascii.encode(':method'), ascii.encode('GET')),
@@ -304,7 +305,7 @@ class IndexTable {
   }
 
   /// Lookup an item by index.
-  Header lookup(int index) {
+  Header? lookup(int index) {
     if (index <= 0) {
       throw HPackDecodingException(
           'Invalid index (was: $index) for table lookup.');

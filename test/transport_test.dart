@@ -414,22 +414,22 @@ void main() {
             stream.sendHeaders([Header.ascii('x', 'y')]);
 
             var messageNr = 0;
-            StreamController<StreamMessage> controller;
+            StreamController<StreamMessage>? controller;
             void addData() {
-              if (!controller.isPaused) {
+              if (controller?.isPaused == false) {
                 if (messageNr < kNumberOfMessages) {
                   var messageBytes = Uint8List(kChunkSize);
                   for (var j = 0; j < messageBytes.length; j++) {
                     messageBytes[j] = (messageNr + j) % 256;
                   }
-                  controller.add(DataStreamMessage(messageBytes));
+                  controller?.add(DataStreamMessage(messageBytes));
 
                   messageNr++;
                   serverSentBytes += messageBytes.length;
 
                   Timer.run(addData);
                 } else {
-                  if (!controller.isClosed) controller.close();
+                  if (controller?.isClosed == false) controller?.close();
                 }
               }
             }
@@ -512,8 +512,8 @@ void transportTest(
     String name,
     Future<void> Function(ClientTransportConnection, ServerTransportConnection)
         func,
-    {ClientSettings clientSettings,
-    ServerSettings serverSettings}) {
+    {ClientSettings? clientSettings,
+    ServerSettings? serverSettings}) {
   return test(name, () {
     var bidirectional = BidirectionalConnection();
     bidirectional.clientSettings = clientSettings;
@@ -525,12 +525,14 @@ void transportTest(
 }
 
 class BidirectionalConnection {
-  ClientSettings clientSettings;
-  ServerSettings serverSettings;
+  ClientSettings? clientSettings;
+  ServerSettings? serverSettings;
 
   final StreamController<List<int>> writeA = StreamController();
   final StreamController<List<int>> writeB = StreamController();
+
   Stream<List<int>> get readA => writeA.stream;
+
   Stream<List<int>> get readB => writeB.stream;
 
   ClientTransportConnection get clientConnection =>

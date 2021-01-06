@@ -10,11 +10,9 @@ import 'dart:async';
 import 'dart:collection';
 
 import '../../transport.dart';
-
 import '../byte_utils.dart';
 import '../error_handler.dart';
 import '../frames/frames.dart';
-
 import 'queue_messages.dart';
 import 'stream_queues.dart';
 import 'window_handler.dart';
@@ -56,9 +54,9 @@ class ConnectionMessageQueueOut extends Object
   int get pendingMessages => _messages.length;
 
   /// Enqueues a new [Message] which should be delivered to the remote peer.
-  void enqueueMessage(Message message) {
+  void enqueueMessage(Message? message) {
     ensureNotClosingSync(() {
-      if (!wasTerminated) {
+      if (!wasTerminated && message != null) {
         _messages.addLast(message);
         _trySendMessages();
       }
@@ -295,8 +293,10 @@ class ConnectionMessageQueueIn extends Object
     // raise a protocol error if we cannot find the registered stream?
     var streamMQ = _stream2messageQueue[streamId];
     var pendingMessages = _stream2pendingMessages[streamId];
-    pendingMessages.addLast(message);
-    _tryDispatch(streamId, streamMQ, pendingMessages);
+    pendingMessages?.addLast(message);
+    if (streamMQ != null && pendingMessages != null) {
+      _tryDispatch(streamId, streamMQ, pendingMessages);
+    }
   }
 
   void _addPushMessage(int streamId, PushPromiseMessage message) {
@@ -305,7 +305,7 @@ class ConnectionMessageQueueIn extends Object
     // TODO: Do we need to do a runtime check here and
     // raise a protocol error if we cannot find the registered stream?
     var streamMQ = _stream2messageQueue[streamId];
-    streamMQ.enqueueMessage(message);
+    streamMQ?.enqueueMessage(message);
   }
 
   void _tryDispatch(
@@ -340,7 +340,7 @@ class ConnectionMessageQueueIn extends Object
       while (messages.isNotEmpty) {
         _count--;
         final message = messages.removeFirst();
-        mq.enqueueMessage(message);
+        mq?.enqueueMessage(message);
         if (message.endStream) {
           toBeRemoved.add(streamId);
           break;

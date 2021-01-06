@@ -4,11 +4,10 @@
 
 import 'dart:async';
 
-import 'package:test/test.dart';
-
-import 'package:http2/transport.dart';
 import 'package:http2/src/frames/frames.dart';
 import 'package:http2/src/settings/settings.dart';
+import 'package:http2/transport.dart';
+import 'package:test/test.dart';
 
 void expectHeadersEqual(List<Header> headers, List<Header> expectedHeaders) {
   expect(headers, hasLength(expectedHeaders.length));
@@ -26,7 +25,7 @@ void streamTest(
     String name,
     Future<void> Function(ClientTransportConnection, ServerTransportConnection)
         func,
-    {ClientSettings settings}) {
+    {ClientSettings? settings}) {
   return test(name, () {
     var bidirect = BidirectionalConnection();
     bidirect.settings = settings;
@@ -48,10 +47,12 @@ void framesTest(
 }
 
 class BidirectionalConnection {
-  ClientSettings settings;
+  ClientSettings? settings;
   final StreamController<List<int>> writeA = StreamController();
   final StreamController<List<int>> writeB = StreamController();
+
   Stream<List<int>> get readA => writeA.stream;
+
   Stream<List<int>> get readB => writeB.stream;
 
   ClientTransportConnection get clientConnection =>

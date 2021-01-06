@@ -51,10 +51,10 @@ class BufferedSink {
 
   /// A intermediate [StreamController] used to catch pause signals and to
   /// propagate the change via [bufferIndicator].
-  StreamController<List<int>> _controller;
+  late StreamController<List<int>> _controller;
 
   /// A future which completes once the sink has been closed.
-  Future _doneFuture;
+  late Future _doneFuture;
 
   BufferedSink(StreamSink<List<int>> dataSink) {
     bufferIndicator.markBuffered();

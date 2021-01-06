@@ -24,19 +24,23 @@ class PingHandler extends Object with TerminatableMixin {
   void onTerminated(error) {
     var values = _remainingPings.values.toList();
     _remainingPings.clear();
-    values.forEach((Completer c) => c.completeError(error));
+    values.forEach((Completer c) {
+      if (error is Object) {
+        c.completeError(error);
+      }
+    });
   }
 
-  void processPingFrame(PingFrame frame) {
+  void processPingFrame(PingFrame? frame) {
     ensureNotTerminatedSync(() {
-      if (frame.header.streamId != 0) {
+      if (frame?.header.streamId != 0) {
         throw ProtocolException('Ping frames must have a stream id of 0.');
       }
 
-      if (!frame.hasAckFlag) {
-        _frameWriter.writePingFrame(frame.opaqueData, ack: true);
+      if (frame?.hasAckFlag == false) {
+        _frameWriter.writePingFrame(frame?.opaqueData ?? 0, ack: true);
       } else {
-        var c = _remainingPings.remove(frame.opaqueData);
+        var c = _remainingPings.remove(frame?.opaqueData);
         if (c != null) {
           c.complete();
         } else {

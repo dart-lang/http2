@@ -4,8 +4,8 @@
 
 import 'dart:async';
 
-import 'package:test/test.dart';
 import 'package:http2/src/async_utils/async_utils.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('async_utils', () {
@@ -67,7 +67,8 @@ void main() {
 
       expect(writer.bufferIndicator.wouldBuffer, true);
 
-      var bytesFuture = c.stream.fold([], (b, d) => b..addAll(d));
+      var bytesFuture =
+          c.stream.fold([], (List<dynamic> b, List<int> d) => b..addAll(d));
 
       expect(writer.bufferIndicator.wouldBuffer, false);
 

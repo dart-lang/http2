@@ -65,6 +65,7 @@ class ClosableMixin {
   Future get done => _completer.future;
 
   bool get isClosing => _closing;
+
   bool get wasClosed => _completer.isCompleted;
 
   void startClosing() {
