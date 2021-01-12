@@ -166,10 +166,10 @@ class StreamMessageQueueIn extends Object
   final Queue<Message> _pendingMessages = Queue<Message>();
 
   /// The [StreamController] used for producing the [messages] stream.
-  StreamController<StreamMessage> _incomingMessagesC;
+  late StreamController<StreamMessage> _incomingMessagesC;
 
   /// The [StreamController] used for producing the [serverPushes] stream.
-  StreamController<TransportStreamPush> _serverPushStreamsC;
+  late StreamController<TransportStreamPush> _serverPushStreamsC;
 
   StreamMessageQueueIn(this.windowHandler) {
     // We start by marking it as buffered, since no one is listening yet and

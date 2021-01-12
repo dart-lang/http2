@@ -18,13 +18,13 @@ import 'transport.dart' as http2;
 ///   * one handles HTTP/2 clients (called with a [http2.ServerTransportStream])
 class MultiProtocolHttpServer {
   final SecureServerSocket _serverSocket;
-  final http2.ServerSettings _settings;
+  final http2.ServerSettings? _settings;
 
-  _ServerSocketController _http11Controller;
-  HttpServer _http11Server;
+  late _ServerSocketController _http11Controller;
+  late HttpServer _http11Server;
 
-  StreamController<http2.ServerTransportStream> _http2Controller;
-  Stream<http2.ServerTransportStream> _http2Server;
+  late StreamController<http2.ServerTransportStream> _http2Controller;
+  late Stream<http2.ServerTransportStream> _http2Server;
   final _http2Connections = <http2.ServerTransportConnection>{};
 
   MultiProtocolHttpServer._(this._serverSocket, this._settings) {
@@ -46,7 +46,7 @@ class MultiProtocolHttpServer {
   /// See also [startServing].
   static Future<MultiProtocolHttpServer> bind(
       address, int port, SecurityContext context,
-      {http2.ServerSettings settings}) async {
+      {http2.ServerSettings? settings}) async {
     context.setAlpnProtocols(['h2', 'h2-14', 'http/1.1'], true);
     var secureServer = await SecureServerSocket.bind(address, port, context);
     return MultiProtocolHttpServer._(secureServer, settings);
@@ -65,7 +65,7 @@ class MultiProtocolHttpServer {
   /// an exception (i.e. these must take care of error handling themselves).
   void startServing(void Function(HttpRequest) callbackHttp11,
       void Function(http2.ServerTransportStream) callbackHttp2,
-      {void Function(dynamic error, StackTrace) onError}) {
+      {void Function(dynamic error, StackTrace)? onError}) {
     // 1. Start listening on the real [SecureServerSocket].
     _serverSocket.listen((SecureSocket socket) {
       var protocol = socket.selectedProtocol;

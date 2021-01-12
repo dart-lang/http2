@@ -12,8 +12,8 @@ class FrameReader {
   /// complying with.
   final ActiveSettings _localSettings;
 
-  StreamSubscription<List<int>> _subscription;
-  StreamController<Frame> _framesController;
+  late StreamSubscription<List<int>> _subscription;
+  late StreamController<Frame> _framesController;
 
   FrameReader(this._inputStream, this._localSettings);
 
@@ -22,7 +22,7 @@ class FrameReader {
     var bufferedData = <List<int>>[];
     var bufferedLength = 0;
 
-    FrameHeader tryReadHeader() {
+    FrameHeader? tryReadHeader() {
       if (bufferedLength >= FRAME_HEADER_SIZE) {
         // Get at least FRAME_HEADER_SIZE bytes in the first byte array.
         _mergeLists(bufferedData, FRAME_HEADER_SIZE);
@@ -33,7 +33,7 @@ class FrameReader {
       return null;
     }
 
-    Frame tryReadFrame(FrameHeader header) {
+    Frame? tryReadFrame(FrameHeader header) {
       var totalFrameLen = FRAME_HEADER_SIZE + header.length;
       if (bufferedLength >= totalFrameLen) {
         // Get the whole frame in the first byte array.
@@ -59,9 +59,9 @@ class FrameReader {
 
     _framesController = StreamController(
         onListen: () {
-          FrameHeader header;
+          FrameHeader? header;
 
-          void terminateWithError(error, [StackTrace stack]) {
+          void terminateWithError(Object error, [StackTrace? stack]) {
             header = null;
             _framesController.addError(error, stack);
             _subscription.cancel();
@@ -76,13 +76,13 @@ class FrameReader {
               while (true) {
                 header ??= tryReadHeader();
                 if (header != null) {
-                  if (header.length > _localSettings.maxFrameSize) {
+                  if (header!.length > _localSettings.maxFrameSize) {
                     terminateWithError(
                         FrameSizeException('Incoming frame is too big.'));
                     return;
                   }
 
-                  var frame = tryReadFrame(header);
+                  var frame = tryReadFrame(header!);
 
                   if (frame != null) {
                     _framesController.add(frame);
@@ -97,7 +97,7 @@ class FrameReader {
             } catch (error, stack) {
               terminateWithError(error, stack);
             }
-          }, onError: (error, StackTrace stack) {
+          }, onError: (Object error, StackTrace stack) {
             terminateWithError(error, stack);
           }, onDone: () {
             if (bufferedLength == 0) {
@@ -173,9 +173,9 @@ class FrameReader {
           _checkFrameLengthCondition((frameEnd - offset) >= 1);
           padLength = bytes[offset++];
         }
-        int streamDependency;
+        int? streamDependency;
         var exclusiveDependency = false;
-        int weight;
+        int? weight;
         if (_isFlagSet(header.flags, HeadersFrame.FLAG_PRIORITY)) {
           _checkFrameLengthCondition((frameEnd - offset) >= 5);
           exclusiveDependency = (bytes[offset] & 0x80) == 0x80;
@@ -211,11 +211,11 @@ class FrameReader {
             message: 'Settings frame length must be a multiple of 6 bytes.');
 
         var count = header.length ~/ 6;
-        var settings = List<Setting>(count);
+        var settings = <Setting>[];
         for (var i = 0; i < count; i++) {
           var identifier = readInt16(bytes, offset + 6 * i);
           var value = readInt32(bytes, offset + 6 * i + 2);
-          settings[i] = Setting(identifier, value);
+          settings.add(Setting(identifier, value));
         }
         var frame = SettingsFrame(header, settings);
         if (frame.hasAckFlag) {
