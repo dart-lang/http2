@@ -23,17 +23,17 @@ class MultiProtocolHttpServer {
   late _ServerSocketController _http11Controller;
   late HttpServer _http11Server;
 
-  late StreamController<http2.ServerTransportStream> _http2Controller;
-  late Stream<http2.ServerTransportStream> _http2Server;
+  final StreamController<http2.ServerTransportStream> _http2Controller =
+      StreamController();
+  Stream<http2.ServerTransportStream> get _http2Server =>
+      _http2Controller.stream;
+
   final _http2Connections = <http2.ServerTransportConnection>{};
 
   MultiProtocolHttpServer._(this._serverSocket, this._settings) {
     _http11Controller =
         _ServerSocketController(_serverSocket.address, _serverSocket.port);
     _http11Server = HttpServer.listenOn(_http11Controller.stream);
-
-    _http2Controller = StreamController();
-    _http2Server = _http2Controller.stream;
   }
 
   /// Binds a new [SecureServerSocket] with a security [context] at [port] and

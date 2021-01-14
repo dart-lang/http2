@@ -47,27 +47,26 @@ void handleClient(SecureSocket socket) {
   connection.incomingStreams.listen((ServerTransportStream stream) async {
     dumpInfo('main', 'Got new HTTP/2 stream with id: ${stream.id}');
 
-    String? path;
-    stream.incomingMessages.listen((StreamMessage msg) async {
+    var pathSeen = false;
+    unawaited(stream.incomingMessages.forEach((StreamMessage msg) async {
       dumpInfo('${stream.id}', 'Got new incoming message');
       if (msg is HeadersStreamMessage) {
         dumpHeaders('${stream.id}', msg.headers);
-        if (path == null) {
-          path = pathFromHeaders(msg.headers);
-          if (path == null) throw Exception('no path given');
-
+        if (!pathSeen) {
+          var path = pathFromHeaders(msg.headers);
+          pathSeen = true;
           if (path == '/') {
             unawaited(sendHtml(stream));
-          } else if (['/iframe', '/iframe2'].contains(path)) {
-            unawaited(sendIFrameHtml(stream, path!));
+          } else if (path == '/iframe' || path == '/iframe2') {
+            unawaited(sendIFrameHtml(stream, path));
           } else {
-            unawaited(send404(stream, path!));
+            unawaited(send404(stream, path));
           }
         }
       } else if (msg is DataStreamMessage) {
         dumpData('${stream.id}', msg.bytes);
       }
-    });
+    }));
   });
 }
 

@@ -418,7 +418,7 @@ void main() {
             stream.sendHeaders([Header.ascii('x', 'y')]);
 
             var messageNr = 0;
-            late StreamController<StreamMessage> controller;
+            var controller = StreamController<StreamMessage>();
             void addData() {
               if (!controller.isPaused) {
                 if (messageNr < kNumberOfMessages) {
@@ -438,23 +438,23 @@ void main() {
               }
             }
 
-            controller = StreamController(
-                onListen: () {
-                  addData();
-                },
-                onPause: expectAsync0(() {
-                  // Assert that we're now at the place (since the granularity
-                  // of adding is [kChunkSize], it could be that we added
-                  // [kChunkSize - 1] bytes more than allowed, before getting
-                  // the pause event).
-                  expect((serverSentBytes - kChunkSize + 1),
-                      lessThan(expectedStreamFlowcontrolWindow));
-                  flowcontrolWindowFull.complete();
-                }),
-                onResume: () {
-                  addData();
-                },
-                onCancel: () {});
+            controller
+              ..onListen = () {
+                addData();
+              }
+              ..onPause = expectAsync0(() {
+                // Assert that we're now at the place (since the granularity
+                // of adding is [kChunkSize], it could be that we added
+                // [kChunkSize - 1] bytes more than allowed, before getting
+                // the pause event).
+                expect((serverSentBytes - kChunkSize + 1),
+                    lessThan(expectedStreamFlowcontrolWindow));
+                flowcontrolWindowFull.complete();
+              })
+              ..onResume = () {
+                addData();
+              }
+              ..onCancel = () {};
 
             await stream.outgoingMessages.addStream(controller.stream);
             await stream.outgoingMessages.close();

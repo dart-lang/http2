@@ -238,16 +238,18 @@ abstract class Connection {
   List<Setting> _decodeSettings(Settings settings) {
     var settingsList = <Setting>[];
 
-    // By default a endpoitn can make an unlimited number of concurrent streams.
-    if (settings.concurrentStreamLimit != null) {
-      settingsList.add(Setting(Setting.SETTINGS_MAX_CONCURRENT_STREAMS,
-          settings.concurrentStreamLimit!));
+    // By default a endpoint can make an unlimited number of concurrent streams.
+    var concurrentStreamLimit = settings.concurrentStreamLimit;
+    if (concurrentStreamLimit != null) {
+      settingsList.add(Setting(
+          Setting.SETTINGS_MAX_CONCURRENT_STREAMS, concurrentStreamLimit));
     }
 
     // By default the stream level flow control window is 64 KiB.
-    if (settings.streamWindowSize != null) {
-      settingsList.add(Setting(
-          Setting.SETTINGS_INITIAL_WINDOW_SIZE, settings.streamWindowSize!));
+    var streamWindowSize = settings.streamWindowSize;
+    if (streamWindowSize != null) {
+      settingsList
+          .add(Setting(Setting.SETTINGS_INITIAL_WINDOW_SIZE, streamWindowSize));
     }
 
     if (settings is ClientSettings) {
@@ -286,11 +288,8 @@ abstract class Connection {
     return _terminate(ErrorCode.NO_ERROR);
   }
 
-  void _activeStateHandler(bool isActive) {
-    if (onActiveStateChanged != null) {
-      onActiveStateChanged!(isActive);
-    }
-  }
+  void _activeStateHandler(bool isActive) =>
+      onActiveStateChanged?.call(isActive);
 
   /// Invokes the passed in closure and catches any exceptions.
   void _catchProtocolErrors(void Function() fn) {

@@ -12,8 +12,7 @@ class FrameReader {
   /// complying with.
   final ActiveSettings _localSettings;
 
-  late StreamSubscription<List<int>> _subscription;
-  late StreamController<Frame> _framesController;
+  final _framesController = StreamController<Frame>();
 
   FrameReader(this._inputStream, this._localSettings);
 
@@ -57,59 +56,62 @@ class FrameReader {
       return null;
     }
 
-    _framesController = StreamController(
-        onListen: () {
-          FrameHeader? header;
+    _framesController.onListen = () {
+      FrameHeader? header;
 
-          void terminateWithError(Object error, [StackTrace? stack]) {
-            header = null;
-            _framesController.addError(error, stack);
-            _subscription.cancel();
-            _framesController.close();
-          }
+      late StreamSubscription<List<int>> subscription;
 
-          _subscription = _inputStream.listen((List<int> data) {
-            bufferedData.add(data);
-            bufferedLength += data.length;
+      void terminateWithError(Object error, [StackTrace? stack]) {
+        header = null;
+        _framesController.addError(error, stack);
+        subscription.cancel();
+        _framesController.close();
+      }
 
-            try {
-              while (true) {
-                header ??= tryReadHeader();
-                if (header != null) {
-                  if (header!.length > _localSettings.maxFrameSize) {
-                    terminateWithError(
-                        FrameSizeException('Incoming frame is too big.'));
-                    return;
-                  }
+      subscription = _inputStream.listen((List<int> data) {
+        bufferedData.add(data);
+        bufferedLength += data.length;
 
-                  var frame = tryReadFrame(header!);
-
-                  if (frame != null) {
-                    _framesController.add(frame);
-                    header = null;
-                  } else {
-                    break;
-                  }
-                } else {
-                  break;
-                }
+        try {
+          while (true) {
+            header ??= tryReadHeader();
+            if (header != null) {
+              if (header!.length > _localSettings.maxFrameSize) {
+                terminateWithError(
+                    FrameSizeException('Incoming frame is too big.'));
+                return;
               }
-            } catch (error, stack) {
-              terminateWithError(error, stack);
-            }
-          }, onError: (Object error, StackTrace stack) {
-            terminateWithError(error, stack);
-          }, onDone: () {
-            if (bufferedLength == 0) {
-              _framesController.close();
+
+              var frame = tryReadFrame(header!);
+
+              if (frame != null) {
+                _framesController.add(frame);
+                header = null;
+              } else {
+                break;
+              }
             } else {
-              terminateWithError(FrameSizeException(
-                  'Incoming byte stream ended with incomplete frame'));
+              break;
             }
-          });
-        },
-        onPause: () => _subscription.pause(),
-        onResume: () => _subscription.resume());
+          }
+        } catch (error, stack) {
+          terminateWithError(error, stack);
+        }
+      }, onError: (Object error, StackTrace stack) {
+        terminateWithError(error, stack);
+      }, onDone: () {
+        if (bufferedLength == 0) {
+          _framesController.close();
+        } else {
+          terminateWithError(FrameSizeException(
+              'Incoming byte stream ended with incomplete frame'));
+        }
+      });
+
+      _framesController
+        ..onPause = subscription.pause
+        ..onResume = subscription.resume;
+    };
 
     return _framesController.stream;
   }
