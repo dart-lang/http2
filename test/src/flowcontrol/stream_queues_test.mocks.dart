@@ -1,10 +1,13 @@
-import 'package:mockito/mockito.dart' as _i1;
+import 'dart:async' as _i4;
+
 import 'package:http2/src/async_utils/async_utils.dart' as _i2;
 import 'package:http2/src/flowcontrol/connection_queues.dart' as _i3;
-import 'dart:async' as _i4;
 import 'package:http2/src/flowcontrol/queue_messages.dart' as _i5;
 import 'package:http2/src/flowcontrol/window_handler.dart' as _i6;
 import 'package:http2/src/frames/frames.dart' as _i7;
+import 'package:mockito/mockito.dart' as _i1;
+
+// ignore_for_file: comment_references
 
 // ignore_for_file: unnecessary_parenthesis
 
@@ -19,16 +22,22 @@ class MockConnectionMessageQueueOut extends _i1.Mock
     _i1.throwOnMissingStub(this);
   }
 
+  @override
   int get pendingMessages =>
-      super.noSuchMethod(Invocation.getter(#pendingMessages), 0);
+      (super.noSuchMethod(Invocation.getter(#pendingMessages), 0) as int);
+  @override
   bool get wasTerminated =>
-      super.noSuchMethod(Invocation.getter(#wasTerminated), false);
+      (super.noSuchMethod(Invocation.getter(#wasTerminated), false) as bool);
+  @override
   _i4.Future<dynamic> get done =>
-      super.noSuchMethod(Invocation.getter(#done), Future.value(null));
+      (super.noSuchMethod(Invocation.getter(#done), Future.value(null))
+          as _i4.Future<dynamic>);
+  @override
   bool get isClosing =>
-      super.noSuchMethod(Invocation.getter(#isClosing), false);
+      (super.noSuchMethod(Invocation.getter(#isClosing), false) as bool);
+  @override
   bool get wasClosed =>
-      super.noSuchMethod(Invocation.getter(#wasClosed), false);
+      (super.noSuchMethod(Invocation.getter(#wasClosed), false) as bool);
   @override
   void enqueueMessage(_i5.Message? message) =>
       super.noSuchMethod(Invocation.method(#enqueueMessage, [message]));
@@ -54,8 +63,9 @@ class MockIncomingWindowHandler extends _i1.Mock
     _i1.throwOnMissingStub(this);
   }
 
+  @override
   int get localWindowSize =>
-      super.noSuchMethod(Invocation.getter(#localWindowSize), 0);
+      (super.noSuchMethod(Invocation.getter(#localWindowSize), 0) as int);
   @override
   void gotData(int? numberOfBytes) =>
       super.noSuchMethod(Invocation.method(#gotData, [numberOfBytes]));
@@ -73,10 +83,13 @@ class MockOutgoingStreamWindowHandler extends _i1.Mock
     _i1.throwOnMissingStub(this);
   }
 
-  _i2.BufferIndicator get positiveWindow => super
-      .noSuchMethod(Invocation.getter(#positiveWindow), _FakeBufferIndicator());
+  @override
+  _i2.BufferIndicator get positiveWindow => (super.noSuchMethod(
+          Invocation.getter(#positiveWindow), _FakeBufferIndicator())
+      as _i2.BufferIndicator);
+  @override
   int get peerWindowSize =>
-      super.noSuchMethod(Invocation.getter(#peerWindowSize), 0);
+      (super.noSuchMethod(Invocation.getter(#peerWindowSize), 0) as int);
   @override
   void processInitialWindowSizeSettingChange(int? difference) =>
       super.noSuchMethod(Invocation.method(
