@@ -1,3 +1,7 @@
+## 2.1.0-dev
+
+* Remove import of `dart:io` to expand platform compatibility to the browser.
+
 ## 2.0.0
 
 * Migrate to null safety.
