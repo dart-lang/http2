@@ -10,4 +10,4 @@ dev_dependencies:
   build_runner: ^1.10.0
   mockito: ^5.0.0-nullsafety
   test: ^1.16.0
-  pedantic: ^1.10.0
+  lints: ^1.0.0
