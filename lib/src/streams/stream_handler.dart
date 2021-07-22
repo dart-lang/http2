@@ -639,6 +639,7 @@ class StreamHandler extends Object with TerminatableMixin, ClosableMixin {
   void _handleDataFrame(Http2StreamImpl stream, DataFrame frame) {
     if (stream.state != StreamState.Open &&
         stream.state != StreamState.HalfClosedLocal) {
+      incomingQueue.processIgnoredDataFrame(frame); // update connection window
       throw StreamClosedException(
           stream.id, 'Expected open state (was: ${stream.state}).');
     }
