@@ -774,7 +774,7 @@ class StreamHandler extends Object with TerminatableMixin, ClosableMixin {
     if (stream.state != StreamState.Terminated) {
       _changeState(stream, StreamState.Terminated);
     }
-    stream.incomingQueue.terminate(propagateException ? exception : null);
+    // keep the incoming queue open for window updates (don't call terminate)
     stream._outgoingCSubscription.cancel();
     stream._outgoingC.close();
 
