@@ -239,6 +239,7 @@ void main() {
           serverWriter.writeDataFrame(invalidStreamId, [42]);
 
           // Make sure the client sends a [RstStreamFrame] frame.
+          expect(await nextFrame() is WindowUpdateFrame, true);
           expect(
               await nextFrame(),
               isA<RstStreamFrame>()
@@ -292,21 +293,29 @@ void main() {
           var streamId = headers.header.streamId;
 
           // Write a data frame for a non-existent stream.
-          serverWriter.writeDataFrame(streamId, [42], endStream: true);
+          var data1 = [42, 42];
+          serverWriter.writeDataFrame(streamId, data1, endStream: true);
 
           // Write more data on the closed stream.
-          serverWriter.writeDataFrame(streamId, [42]);
+          var data2 = [42];
+          serverWriter.writeDataFrame(streamId, data2);
 
           // NOTE: The order of the window update frame / rst frame just
           // happens to be like that ATM.
 
-          // Await stream/connection window update frame.
-          var win = await nextFrame() as WindowUpdateFrame;
-          expect(win.header.streamId, 1);
-          expect(win.windowSizeIncrement, 1);
-          win = await nextFrame() as WindowUpdateFrame;
-          expect(win.header.streamId, 0);
-          expect(win.windowSizeIncrement, 1);
+          // The two WindowUpdateFrames for the data1 DataFrame.
+          var streamUpdate = await nextFrame() as WindowUpdateFrame;
+          expect(streamUpdate.header.streamId, 1);
+          expect(streamUpdate.windowSizeIncrement, 2);
+          var connectionUpdate = await nextFrame() as WindowUpdateFrame;
+          expect(connectionUpdate.header.streamId, 0);
+          expect(connectionUpdate.windowSizeIncrement, 2);
+
+          // The [WindowUpdateFrame] for the frame on the closed stream, which
+          // should still update the connection.
+          var connectionUpdate2 = await nextFrame() as WindowUpdateFrame;
+          expect(connectionUpdate2.header.streamId, 0);
+          expect(connectionUpdate2.windowSizeIncrement, 1);
 
           // Make sure we get a [RstStreamFrame] frame.
           expect(
@@ -330,7 +339,7 @@ void main() {
           await stream.outgoingMessages.close();
           var messages = await stream.incomingMessages.toList();
           expect(messages, hasLength(1));
-          expect((messages[0] as DataStreamMessage).bytes, [42]);
+          expect((messages[0] as DataStreamMessage).bytes, [42, 42]);
 
           await client.finish();
         }

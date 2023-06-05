@@ -536,6 +536,10 @@ class StreamHandler extends Object with TerminatableMixin, ClosableMixin {
           _highestStreamIdReceived =
               max(_highestStreamIdReceived, frame.header.streamId);
         }
+        var streamClosedException = StreamClosedException(
+            frame.header.streamId,
+            'No open stream found and was not a headers frame opening a '
+            'new stream.');
 
         if (frame is HeadersFrame) {
           if (isServer) {
@@ -593,11 +597,26 @@ class StreamHandler extends Object with TerminatableMixin, ClosableMixin {
         } else if (frame is PushPromiseFrame) {
           throw ProtocolException('Cannot push on a non-existent stream '
               '(stream ${frame.header.streamId} does not exist)');
+        } else if (frame is DataFrame) {
+          // http/2 spec:
+          //     However, after sending the RST_STREAM, the sending endpoint
+          //     MUST be prepared to receive and process additional frames sent
+          //     on the stream that might have been sent by the peer prior to
+          //     the arrival of the RST_STREAM.
+          // and:
+          //     A receiver that receives a flow-controlled frame MUST always
+          //     account for its contribution against the connection
+          //     flow-control window, unless the receiver treats this as a
+          //     connection error (Section 5.4.1). This is necessary even if the
+          //     frame is in error. The sender counts the frame toward the
+          //     flow-control window, but if the receiver does not, the
+          //     flow-control window at the sender and receiver can become
+          //     different.
+          incomingQueue.processIgnoredDataFrame(frame);
+          // Still respond with an error, as the stream is closed.
+          throw streamClosedException;
         } else {
-          throw StreamClosedException(
-              frame.header.streamId,
-              'No open stream found and was not a headers frame opening a '
-              'new stream.');
+          throw streamClosedException;
         }
       } else {
         if (frame is HeadersFrame) {
