@@ -239,7 +239,8 @@ void main() {
           serverWriter.writeDataFrame(invalidStreamId, [42]);
 
           // Make sure the client sends a [RstStreamFrame] frame.
-          expect(await nextFrame() is WindowUpdateFrame, true);
+          var windowUpdateFrame = await nextFrame() as WindowUpdateFrame;
+          expect(windowUpdateFrame.header.streamId, 0);
           expect(
               await nextFrame(),
               isA<RstStreamFrame>()

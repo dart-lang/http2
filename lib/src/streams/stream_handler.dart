@@ -536,10 +536,6 @@ class StreamHandler extends Object with TerminatableMixin, ClosableMixin {
           _highestStreamIdReceived =
               max(_highestStreamIdReceived, frame.header.streamId);
         }
-        var streamClosedException = StreamClosedException(
-            frame.header.streamId,
-            'No open stream found and was not a headers frame opening a '
-            'new stream.');
 
         if (frame is HeadersFrame) {
           if (isServer) {
@@ -614,9 +610,9 @@ class StreamHandler extends Object with TerminatableMixin, ClosableMixin {
           //     different.
           incomingQueue.processIgnoredDataFrame(frame);
           // Still respond with an error, as the stream is closed.
-          throw streamClosedException;
+          throw _throwStreamClosedException(frame.header.streamId);
         } else {
-          throw streamClosedException;
+          throw _throwStreamClosedException(frame.header.streamId);
         }
       } else {
         if (frame is HeadersFrame) {
@@ -887,4 +883,11 @@ class StreamHandler extends Object with TerminatableMixin, ClosableMixin {
     var id = stream.id;
     return (isServer && id.isEven) || (!isServer && id.isOdd);
   }
+
+  static Exception _throwStreamClosedException(int streamId) =>
+      StreamClosedException(
+        streamId,
+        'No open stream found and was not a headers frame opening a '
+        'new stream.',
+      );
 }
