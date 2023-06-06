@@ -102,7 +102,7 @@ void main() {
       const STREAM_ID = 99;
 
       var fw = FrameWriterMock();
-      var window = Window();
+      var window = Window(initialSize: 150);
       var initialSize = window.size;
       var handler = IncomingWindowHandler.stream(fw, window, STREAM_ID);
 
@@ -112,17 +112,18 @@ void main() {
       // If the remote end sends us now 100 bytes, it reduces the local
       // incoming window by 100 bytes. Once we handled these bytes, it,
       // will send a [WindowUpdateFrame] to the remote peer to ACK it.
-      handler.gotData(100);
-      expect(handler.localWindowSize, initialSize - 100);
-      expect(window.size, initialSize - 100);
+      var numberOfBytes = 100;
+      handler.gotData(numberOfBytes);
+      expect(handler.localWindowSize, initialSize - numberOfBytes);
+      expect(window.size, initialSize - numberOfBytes);
 
       // The data might sit in a queue. Once the user drains enough data of
       // the queue, we will start ACKing the data and the window becomes
       // positive again.
-      handler.dataProcessed(100);
-      expect(handler.localWindowSize, initialSize);
-      expect(window.size, initialSize);
-      verify(fw.writeWindowUpdate(100, streamId: STREAM_ID)).called(1);
+      handler.dataProcessed(numberOfBytes);
+      expect(handler.localWindowSize, 125);
+      expect(window.size, 125);
+      verify(fw.writeWindowUpdate(75, streamId: STREAM_ID)).called(1);
       verifyNoMoreInteractions(fw);
     });
   });
