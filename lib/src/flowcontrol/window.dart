@@ -11,12 +11,19 @@ class Window {
   /// streams is 65535).
   ///
   /// NOTE: This value can potentially become negative.
+  final int _initialSize;
   int _size;
 
-  Window({int initialSize = (1 << 16) - 1}) : _size = initialSize;
+  Window({int initialSize = (1 << 16) - 1})
+      : _size = initialSize,
+        _initialSize = initialSize;
 
   /// The current size of the flow control window.
   int get size => _size;
+
+  bool get isTooSmall => size < _initialSize / 2;
+
+  int get updateSize => _initialSize ~/ 2;
 
   void modify(int difference) {
     _size += difference;

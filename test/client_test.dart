@@ -297,17 +297,6 @@ void main() {
           // Write more data on the closed stream.
           serverWriter.writeDataFrame(streamId, [42]);
 
-          // NOTE: The order of the window update frame / rst frame just
-          // happens to be like that ATM.
-
-          // Await stream/connection window update frame.
-          var win = await nextFrame() as WindowUpdateFrame;
-          expect(win.header.streamId, 1);
-          expect(win.windowSizeIncrement, 1);
-          win = await nextFrame() as WindowUpdateFrame;
-          expect(win.header.streamId, 0);
-          expect(win.windowSizeIncrement, 1);
-
           // Make sure we get a [RstStreamFrame] frame.
           expect(
               await nextFrame(),
@@ -365,20 +354,6 @@ void main() {
           serverWriter.writeDataFrame(streamId, [42]);
           await cancelDone.future;
           serverWriter.writeDataFrame(streamId, [43]);
-
-          // NOTE: The order of the window update frame / rst frame just
-          // happens to be like that ATM.
-
-          // Await stream/connection window update frame.
-          var win = await nextFrame() as WindowUpdateFrame;
-          expect(win.header.streamId, 1);
-          expect(win.windowSizeIncrement, 1);
-          win = await nextFrame() as WindowUpdateFrame;
-          expect(win.header.streamId, 0);
-          expect(win.windowSizeIncrement, 1);
-          win = await nextFrame() as WindowUpdateFrame;
-          expect(win.header.streamId, 0);
-          expect(win.windowSizeIncrement, 1);
 
           // Make sure we get a [RstStreamFrame] frame.
           expect(
@@ -444,20 +419,6 @@ void main() {
           serverWriter.writeDataFrame(streamId, [43]);
           serverWriter.writeRstStreamFrame(streamId, ErrorCode.STREAM_CLOSED);
           endDone.complete();
-
-          // NOTE: The order of the window update frame / rst frame just
-          // happens to be like that ATM.
-
-          // Await stream/connection window update frame.
-          var win = await nextFrame() as WindowUpdateFrame;
-          expect(win.header.streamId, 1);
-          expect(win.windowSizeIncrement, 1);
-          win = await nextFrame() as WindowUpdateFrame;
-          expect(win.header.streamId, 0);
-          expect(win.windowSizeIncrement, 1);
-          win = await nextFrame() as WindowUpdateFrame;
-          expect(win.header.streamId, 0);
-          expect(win.windowSizeIncrement, 1);
 
           await clientDone.future;
           var finFrame = await nextFrame() as DataFrame;

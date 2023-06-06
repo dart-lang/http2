@@ -152,11 +152,15 @@ class IncomingWindowHandler {
   //  - either stop sending window update frames
   //  - or decreasing the window size
   void dataProcessed(int numberOfBytes) {
-    _localWindow.modify(numberOfBytes);
-
     // TODO: This can be optimized by delaying the window update to
     // send one update with a bigger difference than multiple small update
     // frames.
-    _frameWriter.writeWindowUpdate(numberOfBytes, streamId: _streamId);
+    if (_localWindow.isTooSmall) {
+      _frameWriter.writeWindowUpdate(
+        _localWindow.updateSize,
+        streamId: _streamId,
+      );
+    }
+    _localWindow.modify(_localWindow.updateSize);
   }
 }
