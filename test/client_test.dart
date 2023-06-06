@@ -28,9 +28,9 @@ void main() {
 
         Future serverFun() async {
           serverWriter.writeSettingsFrame([]);
-          expect(await nextFrame() is SettingsFrame, true);
+          expect(await nextFrame(), isA<SettingsFrame>());
           serverWriter.writeSettingsAckFrame();
-          expect(await nextFrame() is SettingsFrame, true);
+          expect(await nextFrame(), isA<SettingsFrame>());
 
           settingsDone.complete();
 
@@ -72,9 +72,9 @@ void main() {
         Future serverFun() async {
           serverWriter.writeSettingsFrame([]);
           settingsDone.complete();
-          expect(await nextFrame() is SettingsFrame, true);
+          expect(await nextFrame(), isA<SettingsFrame>());
           serverWriter.writeSettingsAckFrame();
-          expect(await nextFrame() is SettingsFrame, true);
+          expect(await nextFrame(), isA<SettingsFrame>());
 
           // Make sure we get the graceful shutdown message.
           expect(
@@ -112,8 +112,8 @@ void main() {
         final goawayReceived = Completer();
         Future serverFun() async {
           serverWriter.writePingFrame(42);
-          expect(await nextFrame() is SettingsFrame, true);
-          expect(await nextFrame() is GoawayFrame, true);
+          expect(await nextFrame(), isA<SettingsFrame>());
+          expect(await nextFrame(), isA<GoawayFrame>());
           goawayReceived.complete();
           expect(await serverReader.moveNext(), false);
         }
@@ -156,8 +156,8 @@ void main() {
         var goawayReceived = Completer();
         Future serverFun() async {
           serverWriter.writePingFrame(42);
-          expect(await nextFrame() is SettingsFrame, true);
-          expect(await nextFrame() is GoawayFrame, true);
+          expect(await nextFrame(), isA<SettingsFrame>());
+          expect(await nextFrame(), isA<GoawayFrame>());
           goawayReceived.complete();
           expect(await serverReader.moveNext(), false);
         }
@@ -191,10 +191,10 @@ void main() {
               StreamIterator<Frame> serverReader,
               Future<Frame> Function() nextFrame) async {
         Future serverFun() async {
-          expect(await nextFrame() is SettingsFrame, true);
-          expect(await nextFrame() is HeadersFrame, true);
+          expect(await nextFrame(), isA<SettingsFrame>());
+          expect(await nextFrame(), isA<HeadersFrame>());
           serverWriter.writePingFrame(42);
-          expect(await nextFrame() is GoawayFrame, true);
+          expect(await nextFrame(), isA<GoawayFrame>());
           expect(await serverReader.moveNext(), false);
         }
 
@@ -224,23 +224,27 @@ void main() {
 
         Future serverFun() async {
           serverWriter.writeSettingsFrame([]);
-          expect(await nextFrame() is SettingsFrame, true);
+          expect(await nextFrame(), isA<SettingsFrame>());
           serverWriter.writeSettingsAckFrame();
-          expect(await nextFrame() is SettingsFrame, true);
+          expect(await nextFrame(), isA<SettingsFrame>());
 
           handshakeCompleter.complete();
 
           var headers = await nextFrame() as HeadersFrame;
-          var finFrame = await nextFrame() as DataFrame;
-          expect(finFrame.hasEndStreamFlag, true);
+          expect(
+              await nextFrame(),
+              isA<DataFrame>().having(
+                  (p0) => p0.hasEndStreamFlag, 'Last data frame', true));
 
           // Write a data frame for a non-existent stream.
           var invalidStreamId = headers.header.streamId + 2;
           serverWriter.writeDataFrame(invalidStreamId, [42]);
 
           // Make sure the client sends a [RstStreamFrame] frame.
-          var windowUpdateFrame = await nextFrame() as WindowUpdateFrame;
-          expect(windowUpdateFrame.header.streamId, 0);
+          expect(
+              await nextFrame(),
+              isA<WindowUpdateFrame>()
+                  .having((p0) => p0.header.streamId, 'Connection update', 0));
           expect(
               await nextFrame(),
               isA<RstStreamFrame>()
@@ -254,7 +258,7 @@ void main() {
               endStream: true);
 
           // Wait for the client finish.
-          expect(await nextFrame() is GoawayFrame, true);
+          expect(await nextFrame(), isA<GoawayFrame>());
           expect(await serverReader.moveNext(), false);
           await serverWriter.close();
         }
@@ -281,15 +285,17 @@ void main() {
 
         Future serverFun() async {
           serverWriter.writeSettingsFrame([]);
-          expect(await nextFrame() is SettingsFrame, true);
+          expect(await nextFrame(), isA<SettingsFrame>());
           serverWriter.writeSettingsAckFrame();
-          expect(await nextFrame() is SettingsFrame, true);
+          expect(await nextFrame(), isA<SettingsFrame>());
 
           handshakeCompleter.complete();
 
           var headers = await nextFrame() as HeadersFrame;
-          var finFrame = await nextFrame() as DataFrame;
-          expect(finFrame.hasEndStreamFlag, true);
+          expect(
+              await nextFrame(),
+              isA<DataFrame>().having(
+                  (p0) => p0.hasEndStreamFlag, 'Last data frame', true));
 
           var streamId = headers.header.streamId;
 
@@ -305,18 +311,28 @@ void main() {
           // happens to be like that ATM.
 
           // The two WindowUpdateFrames for the data1 DataFrame.
-          var streamUpdate = await nextFrame() as WindowUpdateFrame;
-          expect(streamUpdate.header.streamId, 1);
-          expect(streamUpdate.windowSizeIncrement, 2);
-          var connectionUpdate = await nextFrame() as WindowUpdateFrame;
-          expect(connectionUpdate.header.streamId, 0);
-          expect(connectionUpdate.windowSizeIncrement, 2);
+          expect(
+              await nextFrame(),
+              isA<WindowUpdateFrame>()
+                  .having((p0) => p0.header.streamId, 'Stream update', 1)
+                  .having((p0) => p0.windowSizeIncrement, 'Windowsize',
+                      data1.length));
+
+          expect(
+              await nextFrame(),
+              isA<WindowUpdateFrame>()
+                  .having((p0) => p0.header.streamId, 'Connection update', 0)
+                  .having((p0) => p0.windowSizeIncrement, 'Windowsize',
+                      data1.length));
 
           // The [WindowUpdateFrame] for the frame on the closed stream, which
           // should still update the connection.
-          var connectionUpdate2 = await nextFrame() as WindowUpdateFrame;
-          expect(connectionUpdate2.header.streamId, 0);
-          expect(connectionUpdate2.windowSizeIncrement, 1);
+          expect(
+              await nextFrame(),
+              isA<WindowUpdateFrame>()
+                  .having((p0) => p0.header.streamId, 'Connection update', 0)
+                  .having((p0) => p0.windowSizeIncrement, 'Windowsize',
+                      data2.length));
 
           // Make sure we get a [RstStreamFrame] frame.
           expect(
@@ -328,7 +344,7 @@ void main() {
                       (f) => f.header.streamId, 'header.streamId', streamId));
 
           // Wait for the client finish.
-          expect(await nextFrame() is GoawayFrame, true);
+          expect(await nextFrame(), isA<GoawayFrame>());
           expect(await serverReader.moveNext(), false);
           await serverWriter.close();
         }
@@ -340,7 +356,11 @@ void main() {
           await stream.outgoingMessages.close();
           var messages = await stream.incomingMessages.toList();
           expect(messages, hasLength(1));
-          expect((messages[0] as DataStreamMessage).bytes, [42, 42]);
+          expect(
+            messages[0],
+            isA<DataStreamMessage>()
+                .having((p0) => p0.bytes, 'Same as `data1` above', [42, 42]),
+          );
 
           await client.finish();
         }
@@ -359,16 +379,17 @@ void main() {
 
         Future serverFun() async {
           serverWriter.writeSettingsFrame([]);
-          expect(await nextFrame() is SettingsFrame, true);
+          expect(await nextFrame(), isA<SettingsFrame>());
           serverWriter.writeSettingsAckFrame();
-          expect(await nextFrame() is SettingsFrame, true);
+          expect(await nextFrame(), isA<SettingsFrame>());
 
           handshakeCompleter.complete();
 
           var headers = await nextFrame() as HeadersFrame;
-          var finFrame = await nextFrame() as DataFrame;
-          expect(finFrame.hasEndStreamFlag, true);
-
+          expect(
+              await nextFrame(),
+              isA<DataFrame>().having(
+                  (p0) => p0.hasEndStreamFlag, 'Last data frame', true));
           var streamId = headers.header.streamId;
 
           // Write a data frame.
@@ -380,15 +401,21 @@ void main() {
           // happens to be like that ATM.
 
           // Await stream/connection window update frame.
-          var win = await nextFrame() as WindowUpdateFrame;
-          expect(win.header.streamId, 1);
-          expect(win.windowSizeIncrement, 1);
-          win = await nextFrame() as WindowUpdateFrame;
-          expect(win.header.streamId, 0);
-          expect(win.windowSizeIncrement, 1);
-          win = await nextFrame() as WindowUpdateFrame;
-          expect(win.header.streamId, 0);
-          expect(win.windowSizeIncrement, 1);
+          expect(
+              await nextFrame(),
+              isA<WindowUpdateFrame>()
+                  .having((p0) => p0.header.streamId, 'Stream update', 1)
+                  .having((p0) => p0.windowSizeIncrement, 'Windowsize', 1));
+          expect(
+              await nextFrame(),
+              isA<WindowUpdateFrame>()
+                  .having((p0) => p0.header.streamId, 'Connection update', 0)
+                  .having((p0) => p0.windowSizeIncrement, 'Windowsize', 1));
+          expect(
+              await nextFrame(),
+              isA<WindowUpdateFrame>()
+                  .having((p0) => p0.header.streamId, 'Connection update', 0)
+                  .having((p0) => p0.windowSizeIncrement, 'Windowsize', 1));
 
           // Make sure we get a [RstStreamFrame] frame.
           expect(
@@ -403,7 +430,7 @@ void main() {
           endDone.complete();
 
           // Wait for the client finish.
-          expect(await nextFrame() is GoawayFrame, true);
+          expect(await nextFrame(), isA<GoawayFrame>());
           expect(await serverReader.moveNext(), false);
           await serverWriter.close();
         }
@@ -416,7 +443,12 @@ void main() {
 
           // first will cancel the stream
           var message = await stream.incomingMessages.first;
-          expect((message as DataStreamMessage).bytes, [42]);
+          expect(
+            message,
+            isA<DataStreamMessage>()
+                .having((p0) => p0.bytes, 'Same sent data above', [42]),
+          );
+
           cancelDone.complete();
 
           await endDone.future;
@@ -438,9 +470,9 @@ void main() {
 
         Future serverFun() async {
           serverWriter.writeSettingsFrame([]);
-          expect(await nextFrame() is SettingsFrame, true);
+          expect(await nextFrame(), isA<SettingsFrame>());
           serverWriter.writeSettingsAckFrame();
-          expect(await nextFrame() is SettingsFrame, true);
+          expect(await nextFrame(), isA<SettingsFrame>());
 
           handshakeCompleter.complete();
 
@@ -459,19 +491,28 @@ void main() {
           // happens to be like that ATM.
 
           // Await stream/connection window update frame.
-          var win = await nextFrame() as WindowUpdateFrame;
-          expect(win.header.streamId, 1);
-          expect(win.windowSizeIncrement, 1);
-          win = await nextFrame() as WindowUpdateFrame;
-          expect(win.header.streamId, 0);
-          expect(win.windowSizeIncrement, 1);
-          win = await nextFrame() as WindowUpdateFrame;
-          expect(win.header.streamId, 0);
-          expect(win.windowSizeIncrement, 1);
+
+          expect(
+              await nextFrame(),
+              isA<WindowUpdateFrame>()
+                  .having((p0) => p0.header.streamId, 'Stream update', 1)
+                  .having((p0) => p0.windowSizeIncrement, 'Windowsize', 1));
+          expect(
+              await nextFrame(),
+              isA<WindowUpdateFrame>()
+                  .having((p0) => p0.header.streamId, 'Connection update', 0)
+                  .having((p0) => p0.windowSizeIncrement, 'Windowsize', 1));
+          expect(
+              await nextFrame(),
+              isA<WindowUpdateFrame>()
+                  .having((p0) => p0.header.streamId, 'Connection update', 0)
+                  .having((p0) => p0.windowSizeIncrement, 'Windowsize', 1));
 
           await clientDone.future;
-          var finFrame = await nextFrame() as DataFrame;
-          expect(finFrame.hasEndStreamFlag, true);
+          expect(
+              await nextFrame(),
+              isA<DataFrame>().having(
+                  (p0) => p0.hasEndStreamFlag, 'Last data frame', true));
 
           // Wait for the client finish.
           expect(await serverReader.moveNext(), false);
@@ -485,7 +526,12 @@ void main() {
 
           // first will cancel the stream
           var message = await stream.incomingMessages.first;
-          expect((message as DataStreamMessage).bytes, [42]);
+          expect(
+            message,
+            isA<DataStreamMessage>()
+                .having((p0) => p0.bytes, 'Same sent data above', [42]),
+          );
+
           cancelDone.complete();
 
           await endDone.future;
@@ -508,15 +554,17 @@ void main() {
 
         Future serverFun() async {
           serverWriter.writeSettingsFrame([]);
-          expect(await nextFrame() is SettingsFrame, true);
+          expect(await nextFrame(), isA<SettingsFrame>());
           serverWriter.writeSettingsAckFrame();
-          expect(await nextFrame() is SettingsFrame, true);
+          expect(await nextFrame(), isA<SettingsFrame>());
 
           handshakeCompleter.complete();
 
           var headers = await nextFrame() as HeadersFrame;
-          var finFrame = await nextFrame() as DataFrame;
-          expect(finFrame.hasEndStreamFlag, true);
+          expect(
+              await nextFrame(),
+              isA<DataFrame>().having(
+                  (p0) => p0.hasEndStreamFlag, 'Last data frame', true));
 
           var streamId = headers.header.streamId;
 
@@ -544,8 +592,13 @@ void main() {
           await stream.outgoingMessages.close();
           var messages = await stream.incomingMessages.toList();
           expect(messages, hasLength(1));
-          expect((messages[0] as HeadersStreamMessage).headers.first,
-              isHeader('a', 'b'));
+
+          expect(
+            messages[0],
+            isA<HeadersStreamMessage>().having((p0) => p0.headers.first,
+                'Same sent headers above', isHeader('a', 'b')),
+          );
+
           await client.finish();
         }
 
@@ -561,9 +614,9 @@ void main() {
 
         Future serverFun() async {
           serverWriter.writeSettingsFrame([]);
-          expect(await nextFrame() is SettingsFrame, true);
+          expect(await nextFrame(), isA<SettingsFrame>());
           serverWriter.writeSettingsAckFrame();
-          expect(await nextFrame() is SettingsFrame, true);
+          expect(await nextFrame(), isA<SettingsFrame>());
 
           handshakeCompleter.complete();
 
@@ -612,9 +665,9 @@ void main() {
 
         Future serverFun() async {
           serverWriter.writeSettingsFrame([]);
-          expect(await nextFrame() is SettingsFrame, true);
+          expect(await nextFrame(), isA<SettingsFrame>());
           serverWriter.writeSettingsAckFrame();
-          expect(await nextFrame() is SettingsFrame, true);
+          expect(await nextFrame(), isA<SettingsFrame>());
 
           handshakeCompleter.complete();
 
@@ -671,9 +724,9 @@ void main() {
           var decoder = HPackDecoder();
 
           serverWriter.writeSettingsFrame([]);
-          expect(await nextFrame() is SettingsFrame, true);
+          expect(await nextFrame(), isA<SettingsFrame>());
           serverWriter.writeSettingsAckFrame();
-          expect(await nextFrame() is SettingsFrame, true);
+          expect(await nextFrame(), isA<SettingsFrame>());
 
           settingsDone.complete();
 
@@ -687,12 +740,16 @@ void main() {
           headersDone.complete();
 
           // Make sure we got the stream reset.
-          var frame2 = await nextFrame() as RstStreamFrame;
-          expect(frame2.errorCode, ErrorCode.CANCEL);
+          expect(
+              await nextFrame(),
+              isA<RstStreamFrame>().having(
+                  (p0) => p0.errorCode, 'Stream reset', ErrorCode.CANCEL));
 
           // Make sure we get the graceful shutdown message.
-          var frame3 = await nextFrame() as GoawayFrame;
-          expect(frame3.errorCode, ErrorCode.NO_ERROR);
+          expect(
+              await nextFrame(),
+              isA<GoawayFrame>().having(
+                  (p0) => p0.errorCode, 'Stream reset', ErrorCode.NO_ERROR));
 
           // Make sure the client ended the connection.
           expect(await serverReader.moveNext(), false);
@@ -730,9 +787,9 @@ void main() {
           var decoder = HPackDecoder();
 
           serverWriter.writeSettingsFrame([]);
-          expect(await nextFrame() is SettingsFrame, true);
+          expect(await nextFrame(), isA<SettingsFrame>());
           serverWriter.writeSettingsAckFrame();
-          expect(await nextFrame() is SettingsFrame, true);
+          expect(await nextFrame(), isA<SettingsFrame>());
 
           settingsDone.complete();
 
