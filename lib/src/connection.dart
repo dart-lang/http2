@@ -99,6 +99,8 @@ abstract class Connection {
 
   final Completer<void> _onInitialPeerSettingsReceived = Completer<void>();
 
+  final StreamController<void> _pingReceived = StreamController<void>();
+
   /// Future which completes when the first SETTINGS frame is received from
   /// the peer.
   Future<void> get onInitialPeerSettingsReceived =>
@@ -179,7 +181,7 @@ abstract class Connection {
     // Setup handlers.
     _settingsHandler = SettingsHandler(_hpackContext.encoder, _frameWriter,
         acknowledgedSettings, peerSettings);
-    _pingHandler = PingHandler(_frameWriter);
+    _pingHandler = PingHandler(_frameWriter, _pingReceived.sink);
 
     var settings = _decodeSettings(settingsObject);
 
@@ -473,6 +475,9 @@ class ClientConnection extends Connection implements ClientTransportConnection {
     }
     return hStream;
   }
+
+  @override
+  Stream<void> get onPingReceived => _pingReceived.stream;
 }
 
 class ServerConnection extends Connection implements ServerTransportConnection {
@@ -489,4 +494,7 @@ class ServerConnection extends Connection implements ServerTransportConnection {
   @override
   Stream<ServerTransportStream> get incomingStreams =>
       _streams.incomingStreams.cast<ServerTransportStream>();
+
+  @override
+  Stream<void> get onPingReceived => _pingReceived.stream;
 }
