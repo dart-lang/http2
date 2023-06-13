@@ -64,8 +64,8 @@ abstract class TransportConnection {
   /// the peer.
   Future<void> get onInitialPeerSettingsReceived;
 
-  /// Future which completes when the first SETTINGS frame is received from
-  /// the peer.
+  /// Stream which emits an event every time a ping is received on this
+  /// connection.
   Stream<void> get onPingReceived;
 
   /// Finish this connection.
