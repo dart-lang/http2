@@ -9,6 +9,7 @@ import 'src/connection.dart';
 import 'src/hpack/hpack.dart' show Header;
 
 export 'src/hpack/hpack.dart' show Header;
+export 'src/frames/frames.dart' show ErrorCode;
 
 typedef ActiveStateHandler = void Function(bool isActive);
 
@@ -78,7 +79,7 @@ abstract class TransportConnection {
   Future finish();
 
   /// Terminates this connection forcefully.
-  Future terminate();
+  Future terminate([int? errorCode]);
 }
 
 abstract class ClientTransportConnection extends TransportConnection {

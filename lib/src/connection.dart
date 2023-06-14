@@ -288,8 +288,8 @@ abstract class Connection {
   }
 
   /// Terminates this connection forcefully.
-  Future terminate() {
-    return _terminate(ErrorCode.NO_ERROR);
+  Future terminate([int? errorCode]) {
+    return _terminate(errorCode ?? ErrorCode.NO_ERROR);
   }
 
   void _activeStateHandler(bool isActive) =>
