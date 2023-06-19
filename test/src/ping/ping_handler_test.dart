@@ -96,7 +96,7 @@ void main() {
 
     test('receiving-ping-calls-stream', () async {
       var writer = FrameWriterMock();
-      var streamController = StreamController();
+      var streamController = StreamController<int>();
       var pingHandler = PingHandler(writer, streamController.sink);
 
       var header = FrameHeader(8, FrameType.PING, 0, 0);

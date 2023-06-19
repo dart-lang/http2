@@ -65,9 +65,9 @@ abstract class TransportConnection {
   /// the peer.
   Future<void> get onInitialPeerSettingsReceived;
 
-  /// Stream which emits an event every time a ping is received on this
-  /// connection.
-  Stream<void> get onPingReceived;
+  /// Stream which emits an event with the ping id every time a ping is received
+  /// on this connection.
+  Stream<int> get onPingReceived;
 
   /// Stream which emits an event every time a ping is received on this
   /// connection.

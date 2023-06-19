@@ -99,7 +99,7 @@ abstract class Connection {
 
   final Completer<void> _onInitialPeerSettingsReceived = Completer<void>();
 
-  final StreamController<void> _pingReceived = StreamController<void>();
+  final StreamController<int> _pingReceived = StreamController<int>();
 
   final StreamController<void> _receivedFrame = StreamController<void>();
 
@@ -480,7 +480,7 @@ class ClientConnection extends Connection implements ClientTransportConnection {
   }
 
   @override
-  Stream<void> get onPingReceived => _pingReceived.stream;
+  Stream<int> get onPingReceived => _pingReceived.stream;
 
   @override
   Stream<void> get onFrameReceived => _receivedFrame.stream;
@@ -502,7 +502,7 @@ class ServerConnection extends Connection implements ServerTransportConnection {
       _streams.incomingStreams.cast<ServerTransportStream>();
 
   @override
-  Stream<void> get onPingReceived => _pingReceived.stream;
+  Stream<int> get onPingReceived => _pingReceived.stream;
 
   @override
   Stream<void> get onFrameReceived => _receivedFrame.stream;
