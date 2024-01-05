@@ -99,9 +99,13 @@ abstract class Connection {
 
   final Completer<void> _onInitialPeerSettingsReceived = Completer<void>();
 
-  final StreamController<int> _pingReceived = StreamController<int>();
+  /// Stream which emits an event with the ping id every time a ping is received
+  /// on this connection.
+  Function(int)? pingReceived;
 
-  final StreamController<void> _receivedFrame = StreamController<void>();
+  /// Stream which emits an event every time a frame is received on this
+  /// connection.
+  Function()? frameReceived;
 
   /// Future which completes when the first SETTINGS frame is received from
   /// the peer.
@@ -148,9 +152,14 @@ abstract class Connection {
   /// The state of this connection.
   late ConnectionState _state;
 
-  Connection(Stream<List<int>> incoming, StreamSink<List<int>> outgoing,
-      Settings settings,
-      {this.isClientConnection = true}) {
+  Connection(
+    Stream<List<int>> incoming,
+    StreamSink<List<int>> outgoing,
+    Settings settings, {
+    this.isClientConnection = true,
+    this.pingReceived,
+    this.frameReceived,
+  }) {
     _setupConnection(incoming, outgoing, settings);
   }
 
@@ -164,26 +173,28 @@ abstract class Connection {
     _frameReaderSubscription = incomingFrames.listen((Frame frame) {
       _catchProtocolErrors(() => _handleFrameImpl(frame));
     }, onError: (error, stack) {
+      // print(1);
       _terminate(ErrorCode.CONNECT_ERROR, causedByTransportError: true);
     }, onDone: () {
       // Ensure existing messages from lower levels are sent to the upper
       // levels before we terminate everything.
       _incomingQueue.forceDispatchIncomingMessages();
       _streams.forceDispatchIncomingMessages();
-
+      // print(2);
       _terminate(ErrorCode.CONNECT_ERROR, causedByTransportError: true);
     });
 
     // Setup frame writing.
     _frameWriter = FrameWriter(_hpackContext.encoder, outgoing, peerSettings);
     _frameWriter.doneFuture.whenComplete(() {
+      // print(3);
       _terminate(ErrorCode.CONNECT_ERROR, causedByTransportError: true);
     });
 
     // Setup handlers.
     _settingsHandler = SettingsHandler(_hpackContext.encoder, _frameWriter,
         acknowledgedSettings, peerSettings);
-    _pingHandler = PingHandler(_frameWriter, _pingReceived.sink);
+    _pingHandler = PingHandler(_frameWriter, pingReceived);
 
     var settings = _decodeSettings(settingsObject);
 
@@ -344,7 +355,7 @@ abstract class Connection {
       frame.decodedHeaders =
           _hpackContext.decoder.decode(frame.headerBlockFragment);
     }
-    _receivedFrame.add(null);
+    frameReceived?.call();
 
     // Handle the frame as either a connection or a stream frame.
     if (frame.header.streamId == 0) {
@@ -446,14 +457,29 @@ abstract class Connection {
 }
 
 class ClientConnection extends Connection implements ClientTransportConnection {
-  ClientConnection._(Stream<List<int>> incoming, StreamSink<List<int>> outgoing,
-      Settings settings)
-      : super(incoming, outgoing, settings, isClientConnection: true);
+  ClientConnection._(
+    Stream<List<int>> incoming,
+    StreamSink<List<int>> outgoing,
+    Settings settings, {
+    super.pingReceived,
+    super.frameReceived,
+  }) : super(incoming, outgoing, settings, isClientConnection: true);
 
-  factory ClientConnection(Stream<List<int>> incoming,
-      StreamSink<List<int>> outgoing, ClientSettings clientSettings) {
+  factory ClientConnection(
+    Stream<List<int>> incoming,
+    StreamSink<List<int>> outgoing,
+    ClientSettings clientSettings, {
+    Function(int data)? pingReceived,
+    Function()? frameReceived,
+  }) {
     outgoing.add(CONNECTION_PREFACE);
-    return ClientConnection._(incoming, outgoing, clientSettings);
+    return ClientConnection._(
+      incoming,
+      outgoing,
+      clientSettings,
+      pingReceived: pingReceived,
+      frameReceived: frameReceived,
+    );
   }
 
   @override
@@ -478,32 +504,35 @@ class ClientConnection extends Connection implements ClientTransportConnection {
     }
     return hStream;
   }
-
-  @override
-  Stream<int> get onPingReceived => _pingReceived.stream;
-
-  @override
-  Stream<void> get onFrameReceived => _receivedFrame.stream;
 }
 
 class ServerConnection extends Connection implements ServerTransportConnection {
-  ServerConnection._(Stream<List<int>> incoming, StreamSink<List<int>> outgoing,
-      Settings settings)
-      : super(incoming, outgoing, settings, isClientConnection: false);
+  ServerConnection._(
+    Stream<List<int>> incoming,
+    StreamSink<List<int>> outgoing,
+    Settings settings, {
+    super.pingReceived,
+    super.frameReceived,
+  }) : super(incoming, outgoing, settings, isClientConnection: false);
 
-  factory ServerConnection(Stream<List<int>> incoming,
-      StreamSink<List<int>> outgoing, ServerSettings serverSettings) {
+  factory ServerConnection(
+    Stream<List<int>> incoming,
+    StreamSink<List<int>> outgoing,
+    ServerSettings serverSettings, {
+    Function(int data)? pingReceived,
+    Function()? frameReceived,
+  }) {
     var frameBytes = readConnectionPreface(incoming);
-    return ServerConnection._(frameBytes, outgoing, serverSettings);
+    return ServerConnection._(
+      frameBytes,
+      outgoing,
+      serverSettings,
+      pingReceived: pingReceived,
+      frameReceived: frameReceived,
+    );
   }
 
   @override
   Stream<ServerTransportStream> get incomingStreams =>
       _streams.incomingStreams.cast<ServerTransportStream>();
-
-  @override
-  Stream<int> get onPingReceived => _pingReceived.stream;
-
-  @override
-  Stream<void> get onFrameReceived => _receivedFrame.stream;
 }

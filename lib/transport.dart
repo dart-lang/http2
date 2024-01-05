@@ -67,11 +67,11 @@ abstract class TransportConnection {
 
   /// Stream which emits an event with the ping id every time a ping is received
   /// on this connection.
-  Stream<int> get onPingReceived;
+  Function(int)? pingReceived;
 
-  /// Stream which emits an event every time a ping is received on this
+  /// Stream which emits an event every time a frame is received on this
   /// connection.
-  Stream<void> get onFrameReceived;
+  Function()? frameReceived;
 
   /// Finish this connection.
   ///
@@ -104,18 +104,37 @@ abstract class ClientTransportConnection extends TransportConnection {
 }
 
 abstract class ServerTransportConnection extends TransportConnection {
-  factory ServerTransportConnection.viaSocket(Socket socket,
-      {ServerSettings? settings}) {
-    return ServerTransportConnection.viaStreams(socket, socket,
-        settings: settings);
+  factory ServerTransportConnection.viaSocket(
+    Socket socket, {
+    ServerSettings? settings,
+    Function(int data)? pingReceived,
+    Function()? frameReceived,
+  }) {
+    return ServerTransportConnection.viaStreams(
+      socket,
+      socket,
+      settings: settings,
+      pingReceived: pingReceived,
+      frameReceived: frameReceived,
+    );
   }
 
   factory ServerTransportConnection.viaStreams(
-      Stream<List<int>> incoming, StreamSink<List<int>> outgoing,
-      {ServerSettings? settings =
-          const ServerSettings(concurrentStreamLimit: 1000)}) {
+    Stream<List<int>> incoming,
+    StreamSink<List<int>> outgoing, {
+    ServerSettings? settings =
+        const ServerSettings(concurrentStreamLimit: 1000),
+    Function(int data)? pingReceived,
+    Function()? frameReceived,
+  }) {
     settings ??= const ServerSettings();
-    return ServerConnection(incoming, outgoing, settings);
+    return ServerConnection(
+      incoming,
+      outgoing,
+      settings,
+      pingReceived: pingReceived,
+      frameReceived: frameReceived,
+    );
   }
 
   /// Incoming HTTP/2 streams.

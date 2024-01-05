@@ -95,15 +95,16 @@ void main() {
     });
 
     test('receiving-ping-calls-stream', () async {
+      List<int> pingData = [];
       var writer = FrameWriterMock();
-      var streamController = StreamController<int>();
-      var pingHandler = PingHandler(writer, streamController.sink);
+      pingCallback(int i) => pingData.add(i);
+      var pingHandler = PingHandler(writer, pingCallback);
 
       var header = FrameHeader(8, FrameType.PING, 0, 0);
       pingHandler.processPingFrame(PingFrame(header, 1));
       var header2 = FrameHeader(8, FrameType.PING, 0, 0);
       pingHandler.processPingFrame(PingFrame(header2, 2));
-      await expectLater(streamController.stream, emitsInOrder([1, 2]));
+      await expectLater(pingData, containsAllInOrder([1, 2]));
     });
   });
 }
