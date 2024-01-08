@@ -173,28 +173,25 @@ abstract class Connection {
     _frameReaderSubscription = incomingFrames.listen((Frame frame) {
       _catchProtocolErrors(() => _handleFrameImpl(frame));
     }, onError: (error, stack) {
-      // print(1);
       _terminate(ErrorCode.CONNECT_ERROR, causedByTransportError: true);
     }, onDone: () {
       // Ensure existing messages from lower levels are sent to the upper
       // levels before we terminate everything.
       _incomingQueue.forceDispatchIncomingMessages();
       _streams.forceDispatchIncomingMessages();
-      // print(2);
       _terminate(ErrorCode.CONNECT_ERROR, causedByTransportError: true);
     });
 
     // Setup frame writing.
     _frameWriter = FrameWriter(_hpackContext.encoder, outgoing, peerSettings);
     _frameWriter.doneFuture.whenComplete(() {
-      // print(3);
       _terminate(ErrorCode.CONNECT_ERROR, causedByTransportError: true);
     });
 
     // Setup handlers.
     _settingsHandler = SettingsHandler(_hpackContext.encoder, _frameWriter,
         acknowledgedSettings, peerSettings);
-    _pingHandler = PingHandler(_frameWriter, pingReceived);
+    _pingHandler = PingHandler(_frameWriter, pingReceived, isClientConnection);
 
     var settings = _decodeSettings(settingsObject);
 
@@ -283,6 +280,7 @@ abstract class Connection {
 
   /// Pings the remote peer (can e.g. be used for measuring latency).
   Future ping() {
+    print('Ping now');
     return _pingHandler.ping().catchError((e, s) {
       return Future.error(
           TransportException('The connection has been terminated.'));
@@ -300,6 +298,8 @@ abstract class Connection {
 
   /// Terminates this connection forcefully.
   Future terminate([int? errorCode]) {
+    print('ter');
+    print(StackTrace.current);
     return _terminate(errorCode ?? ErrorCode.NO_ERROR);
   }
 
@@ -329,6 +329,9 @@ abstract class Connection {
   }
 
   void _handleFrameImpl(Frame? frame) {
+    if (isClientConnection) {
+      // print('Got frame $frame');
+    }
     // The first frame from the other side must be a [SettingsFrame], otherwise
     // we terminate the connection.
     if (_state.isInitialized) {
@@ -418,6 +421,7 @@ abstract class Connection {
   /// The returned future will never complete with an error.
   Future _terminate(int errorCode,
       {bool causedByTransportError = false, String? message}) {
+    print('terminate');
     // TODO: When do we complete here?
     if (_state.state != ConnectionState.Terminated) {
       _state.state = ConnectionState.Terminated;
@@ -443,6 +447,10 @@ abstract class Connection {
       _streams.terminate(exception);
 
       // Close the connection queues
+      if (isClientConnection) {
+        print('Incoming: ' + _incomingQueue.pendingMessages.toString());
+        print('Outgoing: ' + _outgoingQueue.pendingMessages.toString());
+      }
       _incomingQueue.terminate(exception);
       _outgoingQueue.terminate(exception);
 
