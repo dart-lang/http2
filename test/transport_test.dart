@@ -21,7 +21,10 @@ void main() {
 
     transportTest('terminated-client-ping',
         (TransportConnection client, TransportConnection server) async {
-      var clientError = newMethod(client);
+      var clientError =
+          client.ping().catchError(expectAsync2((Object e, StackTrace s) {
+        expect(e, isA<TransportException>());
+      }));
       await client.terminate();
       await clientError;
 
@@ -506,13 +509,6 @@ void main() {
       }, clientSettings: ClientSettings(streamWindowSize: 8096));
     });
   });
-}
-
-Future<dynamic> newMethod(TransportConnection client) {
-  print('firs');
-  return client.ping().catchError(expectAsync2((Object e, StackTrace s) {
-    expect(e, isA<TransportException>());
-  }));
 }
 
 void transportTest(

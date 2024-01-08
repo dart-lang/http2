@@ -245,12 +245,9 @@ class FrameReader {
             (frameEnd - offset) == PingFrame.FIXED_FRAME_LENGTH,
             message: 'Ping frames must have a length of 8.');
         var opaqueData = readInt64(bytes, offset);
-        var pingFrame = PingFrame(header, opaqueData);
-        print('Got ping $opaqueData with ack: ${pingFrame.hasAckFlag}!');
-        return pingFrame;
+        return PingFrame(header, opaqueData);
 
       case FrameType.GOAWAY:
-        print('Got go away!');
         _checkFrameLengthCondition((frameEnd - offset) >= 8);
         var lastStreamId = readInt32(bytes, offset);
         var errorCode = readInt32(bytes, offset + 4);

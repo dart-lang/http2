@@ -13,21 +13,16 @@ import '../sync_errors.dart';
 // TODO: We currently write unconditionally to the [FrameWriter]: we might want
 // to consider be more aware what [Framewriter.bufferIndicator.wouldBuffer]
 // says.
-int eventNumber = 0;
-
 class PingHandler extends Object with TerminatableMixin {
   final FrameWriter _frameWriter;
   final Map<int, Completer> _remainingPings = {};
   final Function(int)? pingReceived;
   int _nextId = 1;
-  late bool client;
 
-  PingHandler(this._frameWriter, [this.pingReceived, this.client = false]);
+  PingHandler(this._frameWriter, [this.pingReceived]);
 
   @override
   void onTerminated(Object? error) {
-    print(
-        '${eventNumber++}: Terminating ${client ? 'client' : 'server'} with remaining: ${_remainingPings.length}');
     var values = _remainingPings.values.toList();
     _remainingPings.clear();
     for (var value in values) {
@@ -40,10 +35,8 @@ class PingHandler extends Object with TerminatableMixin {
       if (frame.header.streamId != 0) {
         throw ProtocolException('Ping frames must have a stream id of 0.');
       }
-      print(
-          '${eventNumber++}: Received ${frame.hasAckFlag ? 'ack' : 'ping'} in ${client ? 'client' : 'server'}, id: ${frame.opaqueData}, remaining: ${_remainingPings.length}');
+
       if (!frame.hasAckFlag) {
-        print('Sending ack ping from ${client ? 'client' : 'server'}');
         // print(
         //     'Call ping received on $pingReceived with data ${frame.opaqueData}');
         pingReceived?.call(frame.opaqueData);
@@ -63,14 +56,11 @@ class PingHandler extends Object with TerminatableMixin {
   }
 
   Future ping() {
-    print('Client was terminated: $wasTerminated');
     return ensureNotTerminatedAsync(() {
       var c = Completer();
       var id = _nextId++;
       _remainingPings[id] = c;
       _frameWriter.writePingFrame(id);
-      print(
-          '${eventNumber++}: Added ping $id in ${client ? 'client' : 'server'} to list, remaining: ${_remainingPings.length}');
       return c.future;
     });
   }

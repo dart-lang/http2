@@ -147,7 +147,6 @@ class ConnectionMessageQueueOut extends Object
       _frameWriter.writeRstStreamFrame(message.streamId, message.errorCode);
     } else if (message is GoawayMessage) {
       _messages.removeFirst();
-      print('Sending go away');
       _frameWriter.writeGoawayFrame(
           message.lastStreamId, message.errorCode, message.debugData);
     } else {
