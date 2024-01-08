@@ -7,4 +7,4 @@ on:
     tags: [ 'v[0-9]+.[0-9]+.[0-9]+*' ]
 jobs:
   publish:
-    uses: dart-lang/ecosystem/.github/workflows/publish.yml@a58c7d8522f76162b1a44895e0e1415714728503
+    uses: dart-lang/ecosystem/.github/workflows/publish.yml@main
