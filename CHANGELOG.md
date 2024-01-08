@@ -1,6 +1,6 @@
 ## 2.3.0
 
-- Only send updates on frames and pings being received when there are listeners as to not fill up memory.
+- Only send updates on frames and pings being received when there are listeners, as to not fill up memory.
 
 ## 2.2.0
 
