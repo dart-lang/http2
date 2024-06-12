@@ -16,16 +16,21 @@ import '../sync_errors.dart';
 class PingHandler extends Object with TerminatableMixin {
   final FrameWriter _frameWriter;
   final Map<int, Completer> _remainingPings = {};
+  final Sink<int>? pingReceived;
+  final bool Function() isListeningToPings;
   int _nextId = 1;
 
-  PingHandler(this._frameWriter);
+  PingHandler(this._frameWriter, StreamController<int> pingStream)
+      : pingReceived = pingStream.sink,
+        isListeningToPings = (() => pingStream.hasListener);
 
   @override
   void onTerminated(Object? error) {
-    var values = _remainingPings.values.toList();
+    final remainingPings = _remainingPings.values.toList();
     _remainingPings.clear();
-    for (var value in values) {
-      value.completeError(error ?? 'Unspecified error');
+    for (final ping in remainingPings) {
+      ping.completeError(
+          error ?? 'Remaining ping completed with unspecified error');
     }
   }
 
@@ -36,6 +41,9 @@ class PingHandler extends Object with TerminatableMixin {
       }
 
       if (!frame.hasAckFlag) {
+        if (isListeningToPings()) {
+          pingReceived?.add(frame.opaqueData);
+        }
         _frameWriter.writePingFrame(frame.opaqueData, ack: true);
       } else {
         var c = _remainingPings.remove(frame.opaqueData);
@@ -53,7 +61,7 @@ class PingHandler extends Object with TerminatableMixin {
 
   Future ping() {
     return ensureNotTerminatedAsync(() {
-      var c = Completer();
+      var c = Completer<void>();
       var id = _nextId++;
       _remainingPings[id] = c;
       _frameWriter.writePingFrame(id);

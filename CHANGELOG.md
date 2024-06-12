@@ -1,6 +1,22 @@
-## 2.0.2-dev
+## 2.3.1-wip
 
+- Require Dart 3.2
+- Add topics to `pubspec.yaml`
+
+## 2.3.0
+
+- Only send updates on frames and pings being received when there are listeners, as to not fill up memory.
+
+## 2.2.0
+
+- Transform headers to lowercase.
+- Expose pings to connection to enable the KEEPALIVE feature for gRPC.
+
+## 2.1.0
+
+- Require Dart `3.0.0`
 - Require Dart `2.17.0`.
+- Send `WINDOW_UPDATE` frames for the connection to account for data being sent on closed streams until the `RST_STREAM` has been processed.
 
 ## 2.0.1
 

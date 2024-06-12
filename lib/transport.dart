@@ -8,6 +8,7 @@ import 'dart:io';
 import 'src/connection.dart';
 import 'src/hpack/hpack.dart' show Header;
 
+export 'src/frames/frames.dart' show ErrorCode;
 export 'src/hpack/hpack.dart' show Header;
 
 typedef ActiveStateHandler = void Function(bool isActive);
@@ -27,10 +28,7 @@ abstract class Settings {
 
 /// Settings for a [TransportConnection] a server can make.
 class ServerSettings extends Settings {
-  const ServerSettings({int? concurrentStreamLimit, int? streamWindowSize})
-      : super(
-            concurrentStreamLimit: concurrentStreamLimit,
-            streamWindowSize: streamWindowSize);
+  const ServerSettings({super.concurrentStreamLimit, super.streamWindowSize});
 }
 
 /// Settings for a [TransportConnection] a client can make.
@@ -39,12 +37,9 @@ class ClientSettings extends Settings {
   final bool allowServerPushes;
 
   const ClientSettings(
-      {int? concurrentStreamLimit,
-      int? streamWindowSize,
-      this.allowServerPushes = false})
-      : super(
-            concurrentStreamLimit: concurrentStreamLimit,
-            streamWindowSize: streamWindowSize);
+      {super.concurrentStreamLimit,
+      super.streamWindowSize,
+      this.allowServerPushes = false});
 }
 
 /// Represents a HTTP/2 connection.
@@ -64,13 +59,21 @@ abstract class TransportConnection {
   /// the peer.
   Future<void> get onInitialPeerSettingsReceived;
 
+  /// Stream which emits an event with the ping id every time a ping is received
+  /// on this connection.
+  Stream<int> get onPingReceived;
+
+  /// Stream which emits an event every time a ping is received on this
+  /// connection.
+  Stream<void> get onFrameReceived;
+
   /// Finish this connection.
   ///
   /// No new streams will be accepted or can be created.
   Future finish();
 
   /// Terminates this connection forcefully.
-  Future terminate();
+  Future terminate([int? errorCode]);
 }
 
 abstract class ClientTransportConnection extends TransportConnection {
@@ -185,8 +188,7 @@ abstract class StreamMessage {
 class DataStreamMessage extends StreamMessage {
   final List<int> bytes;
 
-  DataStreamMessage(this.bytes, {bool? endStream})
-      : super(endStream: endStream);
+  DataStreamMessage(this.bytes, {super.endStream});
 
   @override
   String toString() => 'DataStreamMessage(${bytes.length} bytes)';
@@ -196,8 +198,7 @@ class DataStreamMessage extends StreamMessage {
 class HeadersStreamMessage extends StreamMessage {
   final List<Header> headers;
 
-  HeadersStreamMessage(this.headers, {bool? endStream})
-      : super(endStream: endStream);
+  HeadersStreamMessage(this.headers, {super.endStream});
 
   @override
   String toString() => 'HeadersStreamMessage(${headers.length} headers)';

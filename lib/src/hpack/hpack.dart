@@ -11,7 +11,6 @@ import 'dart:convert' show ascii;
 import 'dart:typed_data';
 
 import '../byte_utils.dart';
-
 import 'huffman.dart';
 import 'huffman_table.dart';
 
@@ -49,7 +48,10 @@ class Header {
   Header(this.name, this.value, {this.neverIndexed = false});
 
   factory Header.ascii(String name, String value) {
-    return Header(ascii.encode(name), ascii.encode(value));
+    // Specs: `However, header field names MUST be converted to lowercase prior
+    // to their encoding in HTTP/2. A request or response containing uppercase
+    // header field names MUST be treated as malformed (Section 8.1.2.6).`
+    return Header(ascii.encode(name.toLowerCase()), ascii.encode(value));
   }
 }
 
@@ -154,6 +156,7 @@ class HPackDecoder {
         }
       }
       return headers;
+      // ignore: avoid_catching_errors
     } on RangeError catch (e) {
       throw HPackDecodingException('$e');
     } on HuffmanDecodingException catch (e) {
