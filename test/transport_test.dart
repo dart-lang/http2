@@ -400,6 +400,7 @@ void main() {
     group('flow-control', () {
       const kChunkSize = 1024;
       const kNumberOfMessages = 1000;
+      final headers = [Header.ascii('a', 'b')];
 
       Future testWindowSize(
           ClientTransportConnection client,
@@ -458,7 +459,6 @@ void main() {
         }
 
         Future clientFun() async {
-          final headers = [Header.ascii('a', 'b')];
           var stream = client.makeRequest(headers, endStream: true);
 
           var gotHeadersFrame = false;
@@ -498,14 +498,6 @@ void main() {
         await testWindowSize(client, server, Window().size);
       });
 
-      transportTest(
-        'fast-sender-receiver-paused--10kb-window-size',
-        (ClientTransportConnection client,
-            ServerTransportConnection server) async {
-          await testWindowSize(client, server, 8096);
-        },
-        clientSettings: const ClientSettings(streamWindowSize: 8096),
-      );
       transportTest('fast-sender-receiver-paused--10kb-window-size',
           (ClientTransportConnection client,
               ServerTransportConnection server) async {
