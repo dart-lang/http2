@@ -504,7 +504,7 @@ void main() {
             ServerTransportConnection server) async {
           await testWindowSize(client, server, 8096);
         },
-        clientSettings: ClientSettings(streamWindowSize: 8096),
+        clientSettings: const ClientSettings(streamWindowSize: 8096),
       );
       transportTest('fast-sender-receiver-paused--10kb-window-size',
           (ClientTransportConnection client,
