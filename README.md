@@ -1,3 +1,6 @@
+> [!IMPORTANT]  
+> This repo has moved to https://github.com/dart-lang/http/tree/master/pkgs/http2
+
 [![Dart CI](https://github.com/dart-lang/http2/actions/workflows/test-package.yml/badge.svg)](https://github.com/dart-lang/http2/actions/workflows/test-package.yml)
 [![pub package](https://img.shields.io/pub/v/http2.svg)](https://pub.dev/packages/http2)
 [![package publisher](https://img.shields.io/pub/publisher/http2.svg)](https://pub.dev/packages/http2/publisher)
